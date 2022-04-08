@@ -9,7 +9,7 @@ This repository provides a command line tool for checking raw data, intermediate
 Clone this repository and navigate to the directory:
 
 ```
-git clone git@github.com:hhunterzinck/genie-bpc-quac.git
+git clone git@github.com:Sage-Bionetworks/genie-bpc-quac.git
 cd genie-bpc-quac/
 ```
 
