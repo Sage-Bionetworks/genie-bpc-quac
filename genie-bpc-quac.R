@@ -128,6 +128,14 @@ if (report == "upload" && sites == choice_all) {
   stop(paste0(msg1, msg2, msg3))
 }
 
+# for any report, site must be relevant for cohort
+if (sites != choice_all && !is.element(sites, names(config$uploads[[cohort]]))) {
+  msg1 <- glue("Site '{sites}' does not contribute data for the '{cohort}' cohort. ")
+  msg2 <- glue("Valid sites for the '{cohort}' cohort: ")
+  msg3 <- glue("{paste0(names(config$uploads[[cohort]]), collapse = ', ')}")
+  stop(paste0(msg1, msg2, msg3))
+}
+
 # parameter messaging ----------------------------------------
 
 if (verbose) {
