@@ -120,14 +120,6 @@ if (report == "comparison" && is.null(config$comparison[[cohort]]$previous)) {
   stop(paste0(msg1, msg2, msg3))
 }
 
-# for upload report, site cannot be 'all'
-if (report == "upload" && sites == choice_all) {
-  msg1 <- glue("'{report}' report must be run on an individual site. ")
-  msg2 <- glue("To view available sites, run the following: ")
-  msg3 <- glue("'Rscript genie-bpc-quac.R -h'")
-  stop(paste0(msg1, msg2, msg3))
-}
-
 # for any report, site must be relevant for cohort
 if (sites != choice_all && !is.element(sites, names(config$uploads[[cohort]]))) {
   msg1 <- glue("Site '{sites}' does not contribute data for the '{cohort}' cohort. ")
@@ -180,6 +172,12 @@ if (is.null(number)) {
   check_nos <- number
 }
 
+if (is.element(report, c("upload", "masking")) && sites == choice_all) {
+  sites <- setdiff(names(config$uploads[[cohort]]), config$constants$sage)
+} else {
+  site <- sites
+}
+
 # collect relevant check functions
 check_nos_valid <- check_nos[unlist(lapply(config$checks[check_nos], function(x) {return(if (x$deprecated == 0 && x$implemented == 1 && is.element(x$level, valid_levels)) T else F)}))]
 check_labels <- unlist(lapply(config$checks[check_nos_valid], function(x) {return(x$label)}))
@@ -193,43 +191,72 @@ if (overview) {
   }
 } else {
   if (length(check_fxns)) {
-    
-    if (report == "upload" && sites == choice_all) {
-      sites <- setdiff(names(config$uploads[[cohort]]), config$constants$sage)
-    } else {
-      site <- sites
-    }
-    
-    # run each applicable QA check
-    res <- c()
-    for (i in 1:length(check_fxns)) {
+    for (site in sites) {
       
-      fxn <- check_fxns[[i]]
-      if (verbose) {
-        cat(glue("{now()}: Checking '{names(check_fxns)[i]}' for cohort '{cohort}' and site '{site}'..."))
+      # run each applicable QA check
+      res <- c()
+      for (i in 1:length(check_fxns)) {
+        
+        fxn <- check_fxns[[i]]
+        if (verbose) {
+          cat(glue("{now()}: Checking '{names(check_fxns)[i]}' for cohort '{cohort}' and site '{site}'..."))
+        }
+        
+        invisible(capture.output(res_check <- check_fxns[[i]](cohort = cohort, site = if (site == choice_all) NA else site, report = report)))
+        if (verbose) {
+          cat(glue(" --> {if(is.null(res_check) || is.na(res_check)) 0 else nrow(res_check)} {check_level[i]}(s) identified"), "\n")
+        }
+        
+        res <- rbind(res, res_check)
+        
+        # check for flagged fail check
+        if (check_level[i] == "fail" && !is.null(res_check) && nrow(res_check) > 0) {
+          stop()
+        }
       }
       
-      invisible(capture.output(res_check <- check_fxns[[i]](cohort = cohort, site = if (site == choice_all) NA else site, report = report)))
-      if (verbose) {
-        cat(glue(" --> {if(is.null(res_check) || is.na(res_check)) 0 else nrow(res_check)} {check_level[i]}(s) identified"), "\n")
+      # write all issues to file
+      outfile <- tolower(glue("{cohort}_{site}_{report}_{level}.csv"))
+      if (length(res)) {
+        issue_no <- seq_len(nrow(res))
+        write.csv(cbind(issue_no, res), file = outfile, row.names = F)
+      } else {
+        to_write = glue("No {level}s triggered.  Congrats! All done!")
+        write(to_write, ncolumns = 1, file = outfile)
       }
       
-      res <- rbind(res, res_check)
-      
-      # check for flagged fail check
-      if (check_level[i] == "fail" && !is.null(res_check) && nrow(res_check) > 0) {
-        stop()
+      # print number of detected issues
+      n_issue <- if (length(res)) nrow(res) else 0
+      if (verbose && file.exists(outfile)) {
+        
+        if (level == choice_all) {
+          print(glue("{now()}: Issues ({n_issue}) written to {outfile}"))
+        } else {
+          print(glue("{now()}: {capitalize(level)}s ({n_issue}) written to {outfile}"))
+        }
       }
-    }
-    
-    # write all issues to file
-    outfile <- tolower(glue("{cohort}_{site}_{report}_{level}.csv"))
-    if (length(res)) {
-      issue_no <- seq_len(nrow(res))
-      write.csv(cbind(issue_no, res), file = outfile, row.names = F)
-    } else {
-      to_write = glue("No {level}s triggered.  Congrats! All done!")
-      write(to_write, ncolumns = 1, file = outfile)
+      
+      if (save_synapse && file.exists(outfile)) {
+        
+        synid_folder_output <- config$output[[cohort]]
+        
+        synid_file_output <- save_to_synapse(path = outfile, 
+                                             parent_id = synid_folder_output, 
+                                             prov_name = "GENIE BPC QA log", 
+                                             prov_desc = glue("GENIE BPC QA {report} {level} log for cohort '{cohort}' and site '{site}'"), 
+                                             prov_used = NA, 
+                                             prov_exec = "https://github.com/hhunterzinck/genie-bpc-quac/blob/develop/genie-bpc-quac.R")
+        synSetAnnotations(synid_file_output, annotations=list(cohort = cohort, 
+                                                              site = site, 
+                                                              level = level, 
+                                                              report = report,
+                                                              issueCount = as.integer(n_issue)))
+        file.remove(outfile)
+        
+        if (verbose) {
+          print(glue("{now()}: Saved log to Synapse at '{outfile}' ({synid_file_output})"))
+        }
+      }
     }
   } else {
     if (verbose) {
@@ -240,39 +267,6 @@ if (overview) {
 
 
 # wrap-up ----------------------------------------------------------------------
-
-# output all output files
-n_issue <- if (length(res)) nrow(res) else 0
-if (verbose && file.exists(outfile)) {
-  
-  if (level == choice_all) {
-    print(glue("{now()}: Issues ({n_issue}) written to {outfile}"))
-  } else {
-    print(glue("{now()}: {capitalize(level)}s ({n_issue}) written to {outfile}"))
-  }
-}
-
-if (save_synapse && file.exists(outfile)) {
-  
-  synid_folder_output <- config$output[[cohort]]
-  
-  synid_file_output <- save_to_synapse(path = outfile, 
-                  parent_id = synid_folder_output, 
-                  prov_name = "GENIE BPC QA log", 
-                  prov_desc = glue("GENIE BPC QA {report} {level} log for cohort '{cohort}' and site(s) '{sites}'"), 
-                  prov_used = NA, 
-                  prov_exec = "https://github.com/hhunterzinck/genie-bpc-quac/blob/develop/genie-bpc-quac.R")
-  synSetAnnotations(synid_file_output, annotations=list(cohort = cohort, 
-                                                        site = sites, 
-                                                        level = level, 
-                                                        report = report,
-                                                        issueCount = as.integer(n_issue)))
-  file.remove(outfile)
-  
-  if (verbose) {
-    print(glue("{now()}: Saved log to Synapse at '{outfile}' ({synid_file_output})"))
-  }
-}
 
 # finish
 toc <- as.double(Sys.time())
