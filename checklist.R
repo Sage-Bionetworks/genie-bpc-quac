@@ -446,9 +446,10 @@ get_bpc_patient_sample_added_removed <- function(cohort, site, report,
                                   obj = list(synid_table = synid_table, previous = F, select = NA))
     
     # get upload data excluding IRR cases
-    synid_entity_source <- config$uploads[[cohort]][[site]]
+    obj_upload <- config$uploads[[cohort]][[site]]
+    synid_entity_source <- obj_upload$data1
     data_current_irr <- get_bpc_data(cohort = cohort, site = site, report = report, 
-                                obj = synid_entity_source)
+                                obj = obj_upload)
     data_current <- data_current_irr %>%
       filter(!grepl(pattern = "[_-]2$", x = (!!as.symbol(config$column_name$patient_id))))
   } else if (report == "table" || report == "comparison") {
@@ -483,9 +484,9 @@ get_bpc_patient_sample_added_removed <- function(cohort, site, report,
   }
   
   if (check_added) {
-    results$ids <- setdiff(data_current[[column_name]], data_previous[[column_name]])
+    results$ids <- setdiff(setdiff(data_current[[column_name]], data_previous[[column_name]]), NA)
   } else {
-    results$ids <- setdiff(data_previous[[column_name]], c(retracted, data_current[[column_name]]))
+    results$ids <- setdiff(setdiff(data_previous[[column_name]], c(retracted, data_current[[column_name]])), NA)
   }
   
   results$column_name = column_name
