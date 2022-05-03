@@ -105,7 +105,7 @@ format_output <- function(value, output_format = "log",
       cat("Warning: no file Synapse ID specified.  Setting file name to NA. \n")
       synid_name <- NA
     } else {
-      synid_name <- paste0(get_synid_file_name(synid), collapse = ",")
+      synid_name <- paste0(get_synid_file_name(synid), collapse = ";")
     }
 
     # get check metadata info
