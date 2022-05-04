@@ -670,7 +670,7 @@ checks:
     action: Please confirm that patient was meant to be removed and submit via retraction form.
   55:
     implemented: 1
-    deprecated: 0
+    deprecated: 1
     level: error
     label: sample_removed_not_retracted
     description: Sample ID removed but not retracted.
