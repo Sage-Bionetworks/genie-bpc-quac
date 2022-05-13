@@ -160,6 +160,7 @@ valid_levels <- level
 check_nos <- c()
 res <- c()
 outfile <- ""
+n_issue <- 0
 
 # format input
 if (level == choice_all) {
