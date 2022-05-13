@@ -675,3 +675,10 @@ checks:
     label: sample_removed_not_retracted
     description: Sample ID removed but not retracted.
     action: Please confirm that sample was meant to be removed and submit via retraction form.
+  56:
+    implemented: 0
+    deprecated: 0
+    level: error
+    label: sample_missing_oncotree_code
+    description: Sample is missing an OncoTree code.
+    action: Please ensure that the OncoTree code for the sample is specified.
