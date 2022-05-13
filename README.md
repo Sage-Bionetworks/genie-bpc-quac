@@ -107,7 +107,7 @@ Checks (23):
 - error 03 (patient_added): Patient ID added. Please confirm that patient was meant to be added
 - error 07 (empty_row): Row entries are all missing. Please remove row from upload file.
 - error 08 (missing_sample_id): Sample ID is missing. Please fill in missing sample ID.
-- error 12 (col_data_type_sor_mismatch): Column data type does not match data type specified in scope of release. Please check values for column and ensure that they match the appropriate data type.
+- error 12 (col_data_type_sor_mismatch): Column data type does not match data type specified in scope of release. Please check values for column and ensure that they match the appropriate datatype.
 - error 13 (col_entry_data_type_sor_mismatch): Entry data type does not match data type specified in scope of release. Please check value for column and ensure that it matches the appropriate data type.
 - error 14 (no_mapped_diag): Mapped diagnosis is missing. Please fill in missing diagnosis.
 - error 17 (sample_not_in_main_genie): Sample ID does not match any ID on the main GENIE sample list. Please correct or remove sample ID.
@@ -123,7 +123,7 @@ Checks (23):
 - error 51 (less_than_adjusted_target): Case count is less than adjusted target count. Please confirm case count and submit any retracted samples.
 - error 52 (greater_than_adjusted_target): Case count is greater than adjusted target count. Please confirm case count.
 - error 54 (patient_removed_not_retracted): Patient ID removed but not retracted. Please confirm that patient was meant to be removed and submit via retraction form.
-- error 55 (sample_removed_not_retracted): Sample ID removed but not retracted. Please confirm that sample was meant to be removed and submit via retraction form.
+- error 56 (sample_missing_oncotree_code): Sample is missing an OncoTree code. Please ensure that the OncoTree code for the sample is specified.
 ```
 
 To see an overview of warning level checks implemented in the upload report:
