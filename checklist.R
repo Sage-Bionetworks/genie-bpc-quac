@@ -2943,3 +2943,46 @@ sample_removed_not_retracted <- function(cohort, site, report, output_format = "
   
   return(output)
 }
+
+#' Check for missing drug name when drug start and/or end date is specified.
+#'
+#' @param cohort Name of the cohort
+#' @param site Name of the site or center 
+#' @param report Type of report in which the check is being conducted (e.g. upload, table)
+#' @param output_format (optional) output format for the check
+#' @return sample IDs with missing oncotree codes (cpt_oncotree_code)
+#' @example
+#' sample_missing_oncotree_code(cohort = "BLADDER", site = "MSK", report = "upload", output_format = "log")
+sample_missing_oncotree_code <- function(cohort, site, report, output_format = "log") {
+  
+  output <- NULL
+  
+  obj_upload <- config$uploads[[cohort]][[site]]
+  data <- get_bpc_data(cohort = cohort, site = site, report = report, obj = obj_upload)
+  
+  var_code <- config$column_name$oncotree_code
+  var_pat <- config$column_name$patient_id
+  var_sam <- config$column_name$sample_id
+  var_form <- config$column_name$instrument
+  var_insta <- config$column_name$instance
+  
+  df_res <- data %>% 
+    filter(is.na(!!as.symbol(var_code)) & !!as.symbol(var_form) == config$instrument_name$panel) %>%
+    select(!!as.symbol(var_pat), !!as.symbol(var_sam), !!as.symbol(var_form), !!as.symbol(var_insta))
+  
+  if (nrow(df_res)) {
+    output <- rbind(output, format_output(value = df_res[[var_sam]], 
+                                          cohort = cohort, 
+                                          site = site,
+                                          output_format = output_format,
+                                          column_name = var_code, 
+                                          synid = obj_upload$data1,
+                                          patient_id = df_res[[var_pat]], 
+                                          instrument = df_res[[var_form]], 
+                                          instance = df_res[[var_insta]],
+                                          check_no = 56,
+                                          infer_site = F))
+  } 
+  
+  return(output)
+}
