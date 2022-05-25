@@ -57,3 +57,7 @@ git pull upstream develop
 
 
 1. On Github, create a pull request from the feature branch of your fork to the `develop` branch of hhunterzinck/genie-bpc-quac.  Make sure to add 'Fixes #{issue_number}' to the comment of your pull request to automatically link the issue.  
+
+### DockerHub build
+
+The [sagebionetworks/genie-bpc-quac](https://hub.docker.com/repository/docker/sagebionetworks/genie-bpc-quac) docker image is automatically built everytime a change to pushed into the `develop` branch.  This is automatically set up via the automated build feature on DockerHub.
