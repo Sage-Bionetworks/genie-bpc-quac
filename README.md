@@ -1,5 +1,8 @@
 # GENIE BPC Quality Assurance Checklist
 
+[![automated](https://img.shields.io/docker/cloud/automated/sagebionetworks/genie-bpc-quac)](https://hub.docker.com/r/sagebionetworks/genie-bpc-quac)
+![status](https://img.shields.io/docker/cloud/build/sagebionetworks/genie-bpc-quac)
+
 ## Overview
 
 This repository provides a command line tool for checking raw data, intermediate files, and final data releases for the GENIE Biopharma Collaborative (BPC) project.  
