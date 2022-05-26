@@ -56,7 +56,7 @@ git pull upstream develop
     ```
 
 
-1. On Github, create a pull request from the feature branch of your fork to the `develop` branch of hhunterzinck/genie-bpc-quac.  Make sure to add 'Fixes #{issue_number}' to the comment of your pull request to automatically link the issue.  
+1. On Github, create a pull request from the feature branch of your fork to the `develop` branch of Sage-Bionetworks/genie-bpc-quac.  Make sure to add 'Fixes #{issue_number}' to the comment of your pull request to automatically link the issue.  
 
 ### DockerHub build
 
