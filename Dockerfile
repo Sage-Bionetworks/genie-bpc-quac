@@ -18,4 +18,4 @@ WORKDIR /usr/local/src/myscripts
 
 RUN R -e 'renv::restore()'
 
-ENTRYPOINT ["Rscript", "genie-bpc-quac.R"]
+# ENTRYPOINT ["Rscript", "genie-bpc-quac.R"]
