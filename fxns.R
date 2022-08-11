@@ -144,9 +144,14 @@ get_data_filtered_table <- function(synid, column_name, col_value, select = NA,
   if (is.na(version)) {
     query <- glue("SELECT {select_clause} FROM {synid} {where_clause}")
   } else {
+    # Sometimes if the tables are updated on the same day, then make sure
+    # to only take the most recent version, or else glue will create a
+    # duplicated string
+    if (is.vector(version)) {
+      version = version[1]
+    }
     query <- glue("SELECT {select_clause} FROM {synid}.{version} {where_clause}")
   }
-  
   results <- synTableQuery(query, includeRowIdAndRowVersion = F)
   data <- as.data.frame(results)
   
