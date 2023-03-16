@@ -527,7 +527,7 @@ checks:
   20:
     implemented: 1
     deprecated: 0
-    level: error
+    level: warning
     label: col_entry_datetime_format_mismatch
     description: Timestamp value is not formatted correctly.
     action: Please correct the format of the timestamp to 'YYYY-mm-dd HH:MM:SS'.
@@ -541,7 +541,7 @@ checks:
   22:
     implemented: 1
     deprecated: 0
-    level: error
+    level: warning
     label: col_entry_date_format_mismatch
     description: Date value is not formatted correctly.
     action: Please correct the format of the date to 'YYYY-mm-dd'.
