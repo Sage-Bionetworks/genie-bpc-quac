@@ -198,7 +198,6 @@ uploads:
   NSCLC2:
     DFCI:
       data1: syn27351603
-      header1: syn27351608
     DUKE:
       data1: syn30821503
     MSK:
