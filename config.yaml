@@ -210,10 +210,11 @@ uploads:
       data1: syn27351619
     VICC:
       data1: syn27351623
+    SAGE:
+      data1: syn51296284
   CRC2:
     DFCI:
       data1: syn29418170
-      header1: syn29418169
     DUKE:
       data1: syn30821496
     MSK:
@@ -226,10 +227,11 @@ uploads:
       data1: syn29418174
     VICC:
       data1: syn29418176
+    SAGE:
+      data1: syn51296287
   RENAL:
     DFCI:
       data1: syn29418122
-      header1: syn29418121
     DUKE:
       data1: syn30821482
     MSK:
@@ -242,10 +244,11 @@ uploads:
       data1: syn29418131
     VICC:
       data1: syn29418134
+    SAGE:
+      data1: syn51296297
   MELANOMA:
     DFCI:
       data1: syn29418138
-      header1: syn29418137
     MSK:
       data1: syn29418140
     PROV:
@@ -256,10 +259,11 @@ uploads:
       data1: syn29418143
     VICC:
       data1: syn29418146
+    SAGE:
+      data1: syn51296296
   OVARIAN:
     DFCI:
       data1: syn29418091
-      header1: syn29418089
     DUKE:
       data1: syn30821466
     MSK:
@@ -272,10 +276,11 @@ uploads:
       data1: syn29418098
     VICC:
       data1: syn29418100
+    SAGE:
+      data1: syn51296289
   ESOPHAGO:
     DFCI:
       data1: syn29418106
-      header1: syn29418105
     DUKE:
       data1: syn30821475
     MSK:
@@ -288,6 +293,8 @@ uploads:
       data1: syn29418113
     VICC:
       data1: syn29418117
+    SAGE:
+      data1: syn51296295
 output:
   BLADDER: syn26709456
   BrCa: syn25872288
