@@ -1804,7 +1804,7 @@ sample_marked_removed_from_bpc <- function(cohort, site, report, output_format =
 #' @return number of current patients 
 #' @example
 #' patient_count_too_small(cohort = "Prostate", site = "VICC", output_format = "log")
-patient_count_too_small <- function(cohort, site, report, output_format = "log", phase = 1) {
+patient_count_too_small <- function(cohort, site, report, output_format = "log") {
   
   # read upload
   obj_upload <- config$uploads[[cohort]][[site]]
@@ -2572,7 +2572,7 @@ data_header_col_mismatch <- function(cohort, site, report, output_format = "log"
 #' @return current and target count message
 #' @example
 #' current_count_not_target(cohort = "Prostate", site = "VICC", output_format = "log")
-current_count_not_target <- function(cohort, site, report, output_format = "log", phase = 1) {
+current_count_not_target <- function(cohort, site, report, output_format = "log") {
   # read upload
   obj_upload <- config$uploads[[cohort]][[site]]
   data <- get_bpc_data(cohort = cohort, site = site, report = report, obj = obj_upload)
@@ -2580,7 +2580,10 @@ current_count_not_target <- function(cohort, site, report, output_format = "log"
   n_current <- get_bpc_case_count(data)
   
   # read samples for cohort from patient table
-  query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort}' AND site = '{site}' AND phase = {phase}")
+  phase_cohort_list <- unlist(parse_phase_from_cohort(cohort))
+  cohort_without_phase <- phase_cohort_list[1]
+  phase <- phase_cohort_list[2]
+  query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}")
   n_target <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
   
   output <- NULL
@@ -2610,7 +2613,7 @@ current_count_not_target <- function(cohort, site, report, output_format = "log"
 #' @return number of current patients 
 #' @example
 #' patient_count_too_large(cohort = "Prostate", site = "VICC", output_format = "log")
-patient_count_too_large <- function(cohort, site, report, output_format = "log", phase = 1) {
+patient_count_too_large <- function(cohort, site, report, output_format = "log") {
   
   # read upload
   obj_upload <- config$uploads[[cohort]][[site]]
@@ -2619,7 +2622,10 @@ patient_count_too_large <- function(cohort, site, report, output_format = "log",
   n_current <- get_bpc_case_count(data)
   
   # read samples for cohort from patient table
-  query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort}' AND site = '{site}' AND phase = {phase}")
+  phase_cohort_list <- unlist(parse_phase_from_cohort(cohort))
+  cohort_without_phase <- phase_cohort_list[1]
+  phase <- phase_cohort_list[2]
+  query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}")
   n_target <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
   
   output <- NULL
@@ -2765,7 +2771,7 @@ invalid_choice_code <- function(cohort, site, report, output_format = "log") {
 #' @return missing drug records
 #' @example
 #' less_than_adjusted_target(cohort = "Prostate", site = "VICC", output_format = "log")
-less_than_adjusted_target <- function(cohort, site, report, output_format = "log", phase = 1) {
+less_than_adjusted_target <- function(cohort, site, report, output_format = "log") {
   output <- NULL
   
   obj_upload <- config$uploads[[cohort]][[site]]
@@ -2774,7 +2780,10 @@ less_than_adjusted_target <- function(cohort, site, report, output_format = "log
   n_current <- get_bpc_case_count(data)
   
   # read samples for cohort from patient table
-  query <- glue("SELECT adjusted_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort}' AND site = '{site}' AND phase = {phase}")
+  phase_cohort_list <- unlist(parse_phase_from_cohort(cohort))
+  cohort_without_phase <- phase_cohort_list[1]
+  phase <- phase_cohort_list[2]
+  query <- glue("SELECT adjusted_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}")
   n_adj <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
   
   output <- NULL
@@ -2803,7 +2812,7 @@ less_than_adjusted_target <- function(cohort, site, report, output_format = "log
 #' @return missing drug records
 #' @example
 #' greater_than_adjusted_target(cohort = "Prostate", site = "VICC", output_format = "log")
-greater_than_adjusted_target <- function(cohort, site, report, output_format = "log", phase = 1) {
+greater_than_adjusted_target <- function(cohort, site, report, output_format = "log") {
   output <- NULL
   
   obj_upload <- config$uploads[[cohort]][[site]]
@@ -2812,7 +2821,10 @@ greater_than_adjusted_target <- function(cohort, site, report, output_format = "
   n_current <- get_bpc_case_count(data)
   
   # read samples for cohort from patient table
-  query <- glue("SELECT adjusted_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort}' AND site = '{site}' AND phase = {phase}")
+  phase_cohort_list <- unlist(parse_phase_from_cohort(cohort))
+  cohort_without_phase <- phase_cohort_list[1]
+  phase <- phase_cohort_list[2]
+  query <- glue("SELECT adjusted_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}")
   n_adj <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
   
   output <- NULL
