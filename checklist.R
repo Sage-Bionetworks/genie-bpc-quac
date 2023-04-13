@@ -1813,7 +1813,10 @@ patient_count_too_small <- function(cohort, site, report, output_format = "log",
   n_current <- get_bpc_case_count(data)
   
   # read samples for cohort from patient table
-  query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort}' AND site = '{site}' AND phase = {phase}")
+  phase_cohort_list <- unlist(parse_phase_from_cohort(cohort))
+  cohort_without_phase <- phase_cohort_list[1]
+  phase <- phase_cohort_list[2]
+  query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}")
   n_target <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
   
   output <- NULL
