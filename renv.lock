@@ -221,11 +221,8 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.15.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "c38694b67e7f7091f7d073b3766258cc",
-      "Requirements": []
+      "Version": "0.17.3",
+      "Source": "Repository"
     },
     "reticulate": {
       "Package": "reticulate",
@@ -278,11 +275,11 @@
     },
     "synapser": {
       "Package": "synapser",
-      "Version": "1.0.0",
-      "Source": "Local",
-      "RemoteType": "local",
-      "RemoteUrl": "/Users/tyu/sage/products-synapse-tools/synapser",
-      "Hash": "8c6a5e0e558507bb853efe6e2beb06bd",
+      "Version": "1.1.0.119",
+      "Source": "Repository",
+      "Repository": "SAGE",
+      "Remotes": "reticulate@1.28",
+      "Hash": "7f84851b0c1da6cd5c123d846bb8bc66",
       "Requirements": [
         "reticulate",
         "rjson"
