@@ -7,26 +7,68 @@
 
 This repository provides a command line tool for checking raw data, intermediate files, and final data releases for the GENIE Biopharma Collaborative (BPC) project.  
 
+## Dependencies
+
+- R = 4.2.3
+- synapser = 1.10
+- reticulate = 1.28
+
+See **Installation** for help on installing synapser, reticulate and other R packages required
+
+## Configuration
+
+Follow instructions here for preparing your environment running the `genie-bpc-quac.R` script locally.
+
+An EC2 instance is **required** to run and develop locally. Follow instructions using [Service-Catalog-Provisioning](https://help.sc.sageit.org/sc/Service-Catalog-Provisioning.938836322.html) to create an ec2 on service catalog.
+
+For this script, here are the specification recommendations when launching an EC2 instance:
+
+- EC2 Product: Linux with Docker
+- EC2 Instance Type: t3.large
+- Disk size: ~40 GB
+
 ## Installation
 
 Clone this repository and navigate to the directory:
 
 ```
-git clone git@github.com:Sage-Bionetworks/genie-bpc-quac.git
+git clone https://github.com/Sage-Bionetworks/genie-bpc-quac.git
 cd genie-bpc-quac/
 ```
 
-For installation with Docker: 
+For installation with Docker:
 
 ```
 docker build -t genie-bpc-quac .
 ```
 
 For install without Docker, install Synapser and other required packages:
+
+1. Install `reticulate` version 1.28 (this is the version that works with synapser version 1.10):
+
+```
+R -e 'install.packages("remotes")'
+R -e 'library(remotes)'
+R -e 'remotes::install_version("reticulate", "1.28")'
+```
+
+2. Find location of `reticulate`'s python with:
+
+```
+R -e 'library(reticulate)'
+R -e 'Sys.which("python")'
+R -e 'Sys.setenv(RETICULATE_PYTHON = "<copy_path_from_above>")'
+```
+
+3. Install `synapser` and other required R packages:
+
 ```
 R -e 'install.packages("synapser", repos = c("http://ran.synapse.org", "http://cran.fhcrc.org"))'
+R -e 'install.packages("renv")'
 R -e 'renv::restore()'
 ```
+
+You might have to do `renv::restore()` and `renv::status()` a couple of times to make sure all the `renv.lock` libraries are installed
 
 ## Usage 
 
@@ -39,7 +81,7 @@ export SYNAPSE_AUTH_TOKEN={your_personal_access_token_here}
 To run with Docker:
 
 ```
-docker run --rm genie-bpc-quac -h
+docker run --rm genie-bpc-quac Rscript genie-bpc-quac.R -h
 ```
 
 To run without Docker:
@@ -80,7 +122,7 @@ optional arguments:
 Example command line with Docker:
 
 ```
-docker run --rm genie-bpc-quac -c {cohort} -s {site} -r upload -l error -v -a $SYNAPSE_AUTH_TOKEN
+docker run --rm genie-bpc-quac Rscript genie-bpc-quac.R -c {cohort} -s {site} -r upload -l error -v -a $SYNAPSE_AUTH_TOKEN
 ```
 
 Example command line without Docker:

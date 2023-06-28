@@ -518,7 +518,7 @@ get_bpc_instrument_of_variable <- function(variable_name, cohort) {
 get_bpc_sor_data_type_single <- function(var_name, sor = NULL) {
   
   if (is.null(sor)) {
-    sor <- get_data(config$synapse$sor$id, sheet = 2)
+    sor <- get_data(config$synapse$sor$id, sheet = "Data Dictionary")
   }
   
   if (sor %>% filter(VARNAME == var_name) %>% count() == 0) {
@@ -1070,7 +1070,7 @@ col_data_type_sor_mismatch <- function(cohort, site, report, output_format = "lo
   output <- c()
   
   # read sor
-  sor <- get_data(config$synapse$sor$id, sheet = 2)
+  sor <- get_data(config$synapse$sor$id, sheet = "Data Dictionary")
   
   # gather data objects
   if (report == "upload") {
@@ -1130,7 +1130,7 @@ col_entry_data_type_sor_mismatch <- function(cohort, site, report, output_format
   output <- c()
   
   # read sor and upload file
-  sor <- get_data(config$synapse$sor$id, sheet = 2)
+  sor <- get_data(config$synapse$sor$id, sheet = "Data Dictionary")
   
   # gather data objects
   if (report == "upload") {
@@ -1638,7 +1638,7 @@ col_empty_but_required <- function(cohort, site, report, output_format = "log", 
 #' col_table_not_sor(cohort = "BrCa", output_format = "log")
 col_table_not_sor <- function(cohort, site, report, output_format = "log") {
   
-  sor <- get_data(config$synapse$sor$id, sheet = 2)
+  sor <- get_data(config$synapse$sor$id, sheet = "Data Dictionary")
   sor_variables <- as.character(unlist(sor %>%
                                          filter(TYPE == "Curated") %>%
                                          select("VARNAME") %>%
@@ -1681,7 +1681,7 @@ col_table_not_sor <- function(cohort, site, report, output_format = "log") {
 #' col_table_not_sor(cohort = "BrCa", output_format = "log")
 col_sor_not_table <- function(cohort, site, report, output_format = "log") {
   
-  sor <- get_data(config$synapse$sor$id, sheet = 2)
+  sor <- get_data(config$synapse$sor$id, sheet = "Data Dictionary")
   sor_variables <- as.character(unlist(sor %>%
     filter(TYPE == "Curated") %>%
     select("VARNAME") %>%
