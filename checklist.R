@@ -1817,7 +1817,11 @@ patient_count_too_small <- function(cohort, site, report, output_format = "log")
   cohort_without_phase <- phase_cohort_list[1]
   phase <- phase_cohort_list[2]
   query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}")
-  n_target <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
+  query_result <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
+  n_target <- 0
+  if (length(query_result)){
+    n_target <- query_result
+  }
   
   output <- NULL
   if (n_current < n_target) {
@@ -2626,7 +2630,11 @@ patient_count_too_large <- function(cohort, site, report, output_format = "log")
   cohort_without_phase <- phase_cohort_list[1]
   phase <- phase_cohort_list[2]
   query <- glue("SELECT target_cases FROM {config$synapse$target_count$id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}")
-  n_target <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
+  query_result <- as.integer(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
+  n_target <- 0
+  if (length(query_result)){
+    n_target <- query_result
+  }
   
   output <- NULL
   if (n_current > n_target) {
