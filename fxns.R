@@ -736,3 +736,15 @@ parse_mapping <- function(str) {
   
   return(mapping)
 }
+
+#' Parse phase and cohort from the cohort input
+#' @param str cohort name including the phase number 
+#' @return list
+parse_phase_from_cohort <- function(cohort) {
+  if(endsWith(cohort,'2')){
+    return(list(substr(cohort, 1, nchar(cohort)-1), 2))
+  }else if(cohort %in% c('RENAL','MELANOMA','OVARIAN','ESOPHAGO')){
+    return(list(cohort, 2))
+  }
+  return(list(cohort, 1))
+}

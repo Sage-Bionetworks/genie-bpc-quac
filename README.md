@@ -93,8 +93,8 @@ Rscript genie-bpc-quac.R -h
 The command line interface will display as follows: 
 
 ```
-usage: genie-bpc-quac.R [-h] -c {BLADDER,BrCa,CRC,NSCLC,PANC,Prostate}
-                        [-s {all,DFCI,MSK,UHN,VICC}] -r
+usage: genie-bpc-quac.R [-h] -c {BLADDER,BrCa,CRC,CRC2,ESOPHAGO,MELANOMA,NSCLC,NSCLC2,OVARIAN,PANC,Prostate,RENAL}
+                        [-s {all,DFCI,DUKE,MSK,PROV,SAGE,UCSF,UHN,VICC}] -r
                         {comparison,masking,release,table,upload} [-n NUMBER]
                         [-l {all,error,warning}] [-o] [-u] [-v]
                         [-a SYNAPSE_AUTH]
@@ -145,30 +145,28 @@ Rscript genie-bpc-quac.R -r upload -c {cohort} -s {site} -l error -v -a $SYNAPSE
 which outputs:
 
 ```
-Checks (23):
-- fail 44 (file_not_csv): The file does not appear to be a CSV file. Please check the file format and ensure the correct data was uploaded.
-- fail 45 (data_header_col_mismatch): The number of columns in the data and header files do not match. Please check the data and header files have the same corresponding columns.
-- fail 49 (quac_required_column_missing): File must contain column but column not found. Please ensure this column is included.
-- error 03 (patient_added): Patient ID added. Please confirm that patient was meant to be added
-- error 07 (empty_row): Row entries are all missing. Please remove row from upload file.
-- error 08 (missing_sample_id): Sample ID is missing. Please fill in missing sample ID.
-- error 12 (col_data_type_sor_mismatch): Column data type does not match data type specified in scope of release. Please check values for column and ensure that they match the appropriate datatype.
-- error 13 (col_entry_data_type_sor_mismatch): Entry data type does not match data type specified in scope of release. Please check value for column and ensure that it matches the appropriate data type.
-- error 14 (no_mapped_diag): Mapped diagnosis is missing. Please fill in missing diagnosis.
-- error 17 (sample_not_in_main_genie): Sample ID does not match any ID on the main GENIE sample list. Please correct or remove sample ID.
-- error 18 (patient_not_in_main_genie): Patient ID does not match any ID on the main GENIE patient list. Please correct or remove patient ID.
-- error 20 (col_entry_datetime_format_mismatch): Timestamp value is not formatted correctly. Please correct the format of the timestamp to 'YYYY-mm-dd HH:MM:SS'.
-- error 22 (col_entry_date_format_mismatch): Date value is not formatted correctly. Please correct the format of the date to 'YYYY-mm-dd'.
-- error 23 (col_empty_but_required): Column values are all missing for required column. Please fill in required data, if applicable.
-- error 26 (patient_marked_removed_from_bpc): Patient has been marked as removed from BPC. Please remove the patient and all associated data from the dataset.
-- error 27 (sample_marked_removed_from_bpc): Sample has been marked as removed from BPC. Please remove the sample and all associated data from the dataset.
-- error 42 (required_not_uploaded): Required variable was not uploaded. Please add the required variable to the dataset.
-- error 48 (cpt_sample_type_numeric): cpt_sample_type is numeric instead of text. Please replace numeric value with appropriate text label.
-- error 50 (invalid_choice_code): The selected value does not match value choices in the data dictionary. Please confirm selected value matches a valid choice.
-- error 51 (less_than_adjusted_target): Case count is less than adjusted target count. Please confirm case count and submit any retracted samples.
-- error 52 (greater_than_adjusted_target): Case count is greater than adjusted target count. Please confirm case count.
-- error 54 (patient_removed_not_retracted): Patient ID removed but not retracted. Please confirm that patient was meant to be removed and submit via retraction form.
-- error 56 (sample_missing_oncotree_code): Sample is missing an OncoTree code. Please ensure that the OncoTree code for the sample is specified.
+Checks (21): 
+- fail 44 (file_not_csv): The file does not appear to be a CSV file. Please check the file format and ensure the correct data was uploaded. 
+- fail 45 (data_header_col_mismatch): The number of columns in the data and header files do not match. Please check the data and header files have the same corresponding columns. 
+- fail 49 (quac_required_column_missing): File must contain column but column not found. Please ensure this column is included. 
+- error 03 (patient_added): Patient ID added. Please confirm that patient was meant to be added 
+- error 07 (empty_row): Row entries are all missing. Please remove row from upload file. 
+- error 08 (missing_sample_id): Sample ID is missing. Please fill in missing sample ID. 
+- error 12 (col_data_type_sor_mismatch): Column data type does not match data type specified in scope of release. Please check values for column and ensure that they match the appropriate data type. 
+- error 13 (col_entry_data_type_sor_mismatch): Entry data type does not match data type specified in scope of release. Please check value for column and ensure that it matches the appropriate data type. 
+- error 14 (no_mapped_diag): Mapped diagnosis is missing. Please fill in missing diagnosis. 
+- error 17 (sample_not_in_main_genie): Sample ID does not match any ID on the main GENIE sample list. Please correct or remove sample ID. 
+- error 18 (patient_not_in_main_genie): Patient ID does not match any ID on the main GENIE patient list. Please correct or remove patient ID. 
+- error 23 (col_empty_but_required): Column values are all missing for required column. Please fill in required data, if applicable. 
+- error 26 (patient_marked_removed_from_bpc): Patient has been marked as removed from BPC. Please remove the patient and all associated data from the dataset. 
+- error 27 (sample_marked_removed_from_bpc): Sample has been marked as removed from BPC. Please remove the sample and all associated data from the dataset. 
+- error 42 (required_not_uploaded): Required variable was not uploaded. Please add the required variable to the dataset. 
+- error 48 (cpt_sample_type_numeric): cpt_sample_type is numeric instead of text. Please replace numeric value with appropriate text label. 
+- error 50 (invalid_choice_code): The selected value does not match value choices in the data dictionary. Please confirm selected value matches a valid choice. 
+- error 51 (less_than_adjusted_target): Case count is less than adjusted target count. Please confirm case count and submit any retracted samples. 
+- error 52 (greater_than_adjusted_target): Case count is greater than adjusted target count. Please confirm case count. 
+- error 54 (patient_removed_not_retracted): Patient ID removed but not retracted. Please confirm that patient was meant to be removed and submit via retraction form. 
+- error 56 (sample_missing_oncotree_code): Sample is missing an OncoTree code. Please ensure that the OncoTree code for the sample is specified. 
 ```
 
 To see an overview of warning level checks implemented in the upload report:
@@ -179,22 +177,24 @@ Rscript genie-bpc-quac.R -r upload -c {cohort} -s {site} -l warning -v -a $SYNAP
 which outputs:
 
 ```
-Checks (15):
-- fail 44 (file_not_csv): The file does not appear to be a CSV file. Please check the file format and ensure the correct data was uploaded.
-- fail 45 (data_header_col_mismatch): The number of columns in the data and header files do not match. Please check the data and header files have the same corresponding columns.
-- fail 49 (quac_required_column_missing): File must contain column but column not found. Please ensure this column is included.
-- warning 04 (patient_removed): Patient ID removed. Please confirm that patient was meant to be removed
-- warning 05 (sample_added): Sample ID added. Please confirm that sample was meant to be added
-- warning 06 (sample_removed): Sample ID removed. Please confirm that sample was meant to be removed
-- warning 01 (col_import_template_added): Column found in file upload but not import template. Please remove column from upload file.
-- warning 02 (col_import_template_removed): Column found in import template but not file upload. Please confirm that column has no relevant data; otherwise, include column in upload.
-- warning 09 (col_empty): Column values are all missing. Please confirm that site has no data for the column.
-- warning 19 (col_data_datetime_format_mismatch): Column timestamps are not formatted correctly. Please correct the format of the timestamps to 'YYYY-mm-dd HH:MM:SS'.
-- warning 21 (col_data_date_format_mismatch): Column dates are not formatted correctly. Please correct the format of the dates to 'YYYY-mm-dd'.
-- warning 28 (patient_count_too_small): Current case count is less than target count. Please add cases to meet target.
-- warning 33 (irr_sample): Sample ID looks like an IRR sample. Please remove sample if IRR analyses are no longer relevant.
-- warning 34 (irr_patient): Patient ID looks like an IRR patient. Please remove patient if IRR analyses are no longer relevant.
-- warning 47 (patient_count_too_large): Current case count is greater than target count. Please remove cases to meet target.
+Checks (17): 
+- fail 44 (file_not_csv): The file does not appear to be a CSV file. Please check the file format and ensure the correct data was uploaded. 
+- fail 45 (data_header_col_mismatch): The number of columns in the data and header files do not match. Please check the data and header files have the same corresponding columns. 
+- fail 49 (quac_required_column_missing): File must contain column but column not found. Please ensure this column is included. 
+- warning 04 (patient_removed): Patient ID removed. Please confirm that patient was meant to be removed 
+- warning 05 (sample_added): Sample ID added. Please confirm that sample was meant to be added 
+- warning 06 (sample_removed): Sample ID removed. Please confirm that sample was meant to be removed 
+- warning 01 (col_import_template_added): Column found in file upload but not import template. Please remove column from upload file. 
+- warning 02 (col_import_template_removed): Column found in import template but not file upload. Please confirm that column has no relevant data; otherwise, include column in upload. 
+- warning 09 (col_empty): Column values are all missing. Please confirm that site has no data for the column. 
+- warning 19 (col_data_datetime_format_mismatch): Column timestamps are not formatted correctly. Please correct the format of the timestamps to 'YYYY-mm-dd HH:MM:SS'. 
+- warning 20 (col_entry_datetime_format_mismatch): Timestamp value is not formatted correctly. Please correct the format of the timestamp to 'YYYY-mm-dd HH:MM:SS'. 
+- warning 21 (col_data_date_format_mismatch): Column dates are not formatted correctly. Please correct the format of the dates to 'YYYY-mm-dd'. 
+- warning 22 (col_entry_date_format_mismatch): Date value is not formatted correctly. Please correct the format of the date to 'YYYY-mm-dd'. 
+- warning 28 (patient_count_too_small): Current case count is less than target count. Please add cases to meet target. 
+- warning 33 (irr_sample): Sample ID looks like an IRR sample. Please remove sample if IRR analyses are no longer relevant. 
+- warning 34 (irr_patient): Patient ID looks like an IRR patient. Please remove patient if IRR analyses are no longer relevant. 
+- warning 47 (patient_count_too_large): Current case count is greater than target count. Please remove cases to meet target. 
 ```
 
 ### masking
