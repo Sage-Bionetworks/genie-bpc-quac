@@ -311,7 +311,7 @@ get_bpc_version_at_date <- function(synid_table, date_version,
   if(length(idx) == 0) {
     return(NA)
   }
-  version_no <- unlist(version_history$versionNumber[idx])
+  version_no <- version_history$versionNumber[idx][[1]]
   
   return(version_no)
 }
