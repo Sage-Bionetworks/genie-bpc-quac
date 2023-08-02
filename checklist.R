@@ -1640,7 +1640,7 @@ col_table_not_sor <- function(cohort, site, report, output_format = "log") {
   
   sor <- get_data(config$synapse$sor$id, sheet = 2)
   sor_variables <- as.character(unlist(sor %>%
-                                         filter(TYPE == "Curated") %>%
+                                         filter(TYPE %in% c("Curated","Project GENIE Tier 1 data","Tumor Registry")) %>%
                                          select("VARNAME") %>%
                                          distinct()))
   
@@ -1683,7 +1683,7 @@ col_sor_not_table <- function(cohort, site, report, output_format = "log") {
   
   sor <- get_data(config$synapse$sor$id, sheet = 2)
   sor_variables <- as.character(unlist(sor %>%
-    filter(TYPE == "Curated") %>%
+    filter(TYPE %in% c("Curated","Project GENIE Tier 1 data","Tumor Registry")) %>%
     select("VARNAME") %>%
     distinct()))
   
