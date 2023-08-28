@@ -549,14 +549,14 @@ get_bpc_sor_data_type <- function(var_name, sor = NULL) {
 }
 
 get_bpc_table_synapse_ids <- function() {
-  query <- glue("SELECT id, name FROM {config$synapse$tables_view$id} WHERE double_curated = 'false'")
+  query <- glue("SELECT id, name FROM {config$synapse$tables_view$id} WHERE double_curated = 'false' AND table_type = 'data'")
   table_info <- as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))
   
   return(setNames(table_info$id, table_info$name))
 }
 
 get_bpc_table_instrument <- function(synapse_id) {
-  query <- glue("SELECT form FROM {config$synapse$tables_view$id} WHERE double_curated = 'false' AND id = '{synapse_id}'")
+  query <- glue("SELECT form FROM {config$synapse$tables_view$id} WHERE double_curated = 'false' AND table_type = 'data' AND id = '{synapse_id}'")
   form <- as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))
   
   return(as.character(form))
@@ -567,7 +567,7 @@ get_bpc_set_view <- function(cohort, report, version = NA) {
   view <- NULL
   
   if (report == "table" || report == "comparison") {
-    query <- glue("SELECT id, primary_key, form FROM {config$synapse$tables_view$id} WHERE double_curated = 'false'")
+    query <- glue("SELECT id, primary_key, form FROM {config$synapse$tables_view$id} WHERE double_curated = 'false' AND table_type = 'data'")
     view <- as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))
   } else if (report == "release") {
     
@@ -1644,7 +1644,7 @@ col_table_not_sor <- function(cohort, site, report, output_format = "log") {
                                          select("VARNAME") %>%
                                          distinct()))
   
-  query <- glue("SELECT id FROM {config$synapse$tables_view$id} WHERE double_curated = 'false'")
+  query <- glue("SELECT id FROM {config$synapse$tables_view$id} WHERE double_curated = 'false' AND table_type = 'data'")
   synid_tables <- as.character(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
   
   table_variables <- c()
@@ -1687,7 +1687,7 @@ col_sor_not_table <- function(cohort, site, report, output_format = "log") {
     select("VARNAME") %>%
     distinct()))
   
-  query <- glue("SELECT id FROM {config$synapse$tables_view$id} WHERE double_curated = 'false'")
+  query <- glue("SELECT id FROM {config$synapse$tables_view$id} WHERE double_curated = 'false' AND table_type = 'data'")
   synid_tables <- as.character(unlist(as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))))
   
   table_variables <- c()
