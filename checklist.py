@@ -9,7 +9,7 @@ import synapseclient
 from utils import *
 
 
-syn = synapseclient.Synapse()
+syn = synapseclient.login()
 syn.login()
 
 # global variables ------------------------------------
@@ -51,7 +51,7 @@ def update_config_for_comparison_report(config):
     """
     # update for comparison reports
     query = f"SELECT * FROM {config['synapse']['version_date']['id']}"
-    comp = pd.DataFrame(Synapse().tableQuery(query).asDataFrame())
+    comp = pd.DataFrame(syn.tableQuery(query).asDataFrame())
 
     config["comparison"] = {}
     for i in range(len(comp)):
@@ -76,7 +76,7 @@ def update_config_for_release_report(config):
     """
     # update for release comparisons
     query = f"SELECT * FROM {config['synapse']['version_release']['id']} WHERE current = 'true'"
-    rel = pd.DataFrame(Synapse().tableQuery(query).asDataFrame())
+    rel = pd.DataFrame(syn.tableQuery(query).asDataFrame())
 
     config["release"] = {}
     for i in range(len(rel)):
@@ -254,7 +254,7 @@ def get_main_genie_ids(synid_table_sample, patient=True, sample=True):
         query = f"SELECT SAMPLE_ID FROM {synid_table_sample}"
     else:
         return None
-    res = pd.DataFrame(synapseclient.Synapse().tableQuery(query).asDataFrame())
+    res = pd.DataFrame(syn.tableQuery(query).asDataFrame())
     return res
 
 
@@ -268,10 +268,10 @@ def get_bpc_synid_prissmm(
 ):
     query = f"SELECT id FROM {synid_table_prissmm} WHERE cohort = '{cohort}' ORDER BY name DESC LIMIT 1"
     synid_folder_prissmm = (
-        synapseclient.Synapse().tableQuery(query).asDataFrame().values[0][0]
+        syn.tableQuery(query).asDataFrame().values[0][0]
     )
     synid_prissmm_children = list(
-        synapseclient.Synapse().getChildren(synid_folder_prissmm)
+        syn.getChildren(synid_folder_prissmm)
     )
     synid_prissmm_children_ids = {
         child["name"]: child["id"] for child in synid_prissmm_children
@@ -293,22 +293,22 @@ def get_bpc_data_upload(
     data2 = []
 
     # get data 1 (default, should always be specified)
-    ent = synapseclient.Synapse().get(synid_file_data1)
+    ent = syn.get(synid_file_data1)
     data1 = pd.read_csv(ent.path, na_values="", dtype=str)
 
     # check for header1
     if synid_file_header1:
-        ent = synapseclient.Synapse().get(synid_file_header1)
+        ent = syn.get(synid_file_header1)
         data1.columns = pd.read_csv(ent.path, na_values="", dtype=str).values[0]
 
     # check for data 2
     if synid_file_data2:
-        ent = synapseclient.Synapse().get(synid_file_data2)
+        ent = syn.get(synid_file_data2)
         data2 = pd.read_csv(ent.path, na_values="", dtype=str)
 
     # check for header2
     if synid_file_header2:
-        ent = synapseclient.Synapse().get(synid_file_header2)
+        ent = syn.get(synid_file_header2)
         data2.columns = pd.read_csv(ent.path, na_values="", dtype=str).values[0]
 
     if synid_file_data2:
@@ -331,7 +331,7 @@ def get_bpc_version_at_date(
     tz_target="US/Pacific",
 ):
     rest_cmd = f"/entity/{synid_table}/version?limit=50"
-    version_history_list = synapseclient.Synapse().restGET(rest_cmd)
+    version_history_list = syn.restGET(rest_cmd)
     version_history = pd.DataFrame(version_history_list["results"])
     version_history["date_cut"] = version_history["modifiedOn"].apply(
         lambda x: datetime.datetime.strptime(x, ts_format)
@@ -421,7 +421,7 @@ def get_bpc_data(cohort, site, report, obj=None):
 
 
 def get_bpc_index_missing_sample(
-    data, instrument=config["instrument"]["panel"], na_strings=["NA", ""]
+    data, instrument=config["instrument_name"]["panel"], na_strings=["NA", ""]
 ):
     idx = data[
         (data[config["column_name"]["instrument"]] == instrument)

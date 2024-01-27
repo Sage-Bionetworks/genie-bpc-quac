@@ -8,27 +8,21 @@
 # pre-setup ---------------------------------
 
 import argparse
-import yaml
+import datetime
 import os
-
-# start timer
 import time
 
-tic = time.time()
-
-# libraries
 import pandas as pd
-
-# import openpyxl
-import json
 import synapseclient
+import yaml
 
-# from glue import glue
+from checklist import (
+    get_check_functions,
+    update_config_for_comparison_report,
+    update_config_for_release_report
+)
 
-# functions
-# replace with your actual function files
-from utils import *
-from checklist import *
+tic = time.time()
 
 workdir = "."
 if not os.path.exists("config.yaml"):
@@ -117,14 +111,6 @@ parser.add_argument(
     default=False,
     help="Display messages on script progress to the user",
 )
-parser.add_argument(
-    "-a",
-    dest="synapse_auth",
-    type=str,
-    default="~/.synapseConfig",
-    help="Path to .synapseConfig file or Synapse PAT (default: '~/.synapseConfig')",
-)
-
 # extract command line arguments
 args = parser.parse_args()
 report = args.report
@@ -135,7 +121,6 @@ sites = args.site
 verbose = args.verbose
 save_synapse = args.save_to_synapse
 overview = args.overview
-synapse_auth = args.synapse_auth
 
 # setup ------------------------------------------------------------------------
 
