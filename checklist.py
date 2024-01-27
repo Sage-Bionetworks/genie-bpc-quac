@@ -1,13 +1,31 @@
-import os
-import yaml
-import pandas as pd
-from synapseclient import Synapse
-import numpy as np
 import datetime
+import os
+
+import numpy as np
+import pandas as pd
 import synapseclient
+import yaml
 
-from utils import *
-
+from utils import (
+    get_synid_file_name,
+    get_data_filtered,
+    get_data,
+    get_file_synid_from_path,
+    get_synid_from_table,
+    get_synapse_folder_children,
+    get_columns_removed,
+    get_folder_synid_from_path,
+    get_columns_added,
+    is_empty,
+    infer_data_type,
+    get_added,
+    is_timestamp_format_correct,
+    is_date_format_correct,
+    parse_phase_from_cohort,
+    fraction_empty,
+    parse_mapping,
+    is_synapse_entity_csv,
+)
 
 syn = synapseclient.login()
 syn.login()
@@ -18,7 +36,6 @@ if not os.path.exists("config.yaml"):
     workdir = "/usr/local/src/myscripts"
 with open(os.path.join(workdir, "config.yaml"), "r") as stream:
     config = yaml.safe_load(stream)
-
 
 # list of functions ------------------------------------
 def get_check_functions(labels):
@@ -441,7 +458,8 @@ def get_bpc_patient_sample_added_removed(
     synid_entity_source = None
     results = {}
     retracted = []
-
+    config = update_config_for_comparison_report(config)
+    config = update_config_for_release_report(config)
     if check_patient:
         column_name = config["column_name"]["patient_id"]
         table_name = config["table_name"]["patient_id"]
@@ -2426,12 +2444,18 @@ def ct_drug_not_investigational(cohort, site, report, output_format="log"):
 
     results = pd.DataFrame()
     for i in range(1, 6):
-        query = f"""
-        SELECT record_id, redcap_repeat_instrument, redcap_repeat_instance, 'drugs_drug_{i}' as column_name
-        FROM data_upload
-        WHERE redcap_repeat_instrument = 'ca_directed_drugs' AND drugs_drug_{i} != {code_masked} AND drugs_ct_yn = {code_yes}
-        """
-        result = sqldf(query)
+        # query = f"""
+        # SELECT record_id, redcap_repeat_instrument, redcap_repeat_instance, 'drugs_drug_{i}' as column_name
+        # FROM data_upload
+        # WHERE redcap_repeat_instrument = 'ca_directed_drugs' AND drugs_drug_{i} != {code_masked} AND drugs_ct_yn = {code_yes}
+        # """
+        filtered_df = data_upload[
+            (data_upload['redcap_repeat_instrument'] == 'ca_directed_drugs') & 
+            (data_upload[f'drugs_drug_{i}'] != code_masked) & 
+            (data_upload['drugs_ct_yn'] == code_yes)
+        ]
+        filtered_df.rename(columns={f'drugs_drug_{i}': 'column_name'}, inplace=True)
+        result = filtered_df[['record_id', 'redcap_repeat_instrument', 'redcap_repeat_instance', 'column_name']]
         results = pd.concat([results, result])
 
     output = format_output(

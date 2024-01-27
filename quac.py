@@ -16,6 +16,7 @@ import pandas as pd
 import synapseclient
 import yaml
 
+from utils import save_to_synapse
 from checklist import (
     get_check_functions,
     update_config_for_comparison_report,
@@ -131,7 +132,7 @@ syn = synapseclient.login()
 # update config
 config = update_config_for_comparison_report(config)
 config = update_config_for_release_report(config)
-
+print(config['release'])
 # check user input -------------------------------------------------------------
 
 if number is not None:
@@ -228,7 +229,7 @@ check_nos_valid = [
 check_labels = [config["checks"][check_no]["label"] for check_no in check_nos_valid]
 check_level = [config["checks"][check_no]["level"] for check_no in check_nos_valid]
 check_fxns = get_check_functions(check_labels)
-
+print(check_fxns)
 if overview:
     print(f"Checks ({len(check_fxns)}):")
     for check_no in check_nos_valid:
@@ -236,18 +237,18 @@ if overview:
             f"- {config['checks'][check_no]['level']} {str(check_no).zfill(2)} ({config['checks'][check_no]['label']}): {config['checks'][check_no]['description']} {config['checks'][check_no]['action']}"
         )
 else:
-    if len(check_fxns):
+    if check_fxns:
         for site in sites:
             # run each applicable QA check
             res = []
-            for i in range(len(check_fxns)):
-                fxn = check_fxns[i]
+            for i, fxn in check_fxns.items():
+                # fxn = check_fxns[i]
                 if verbose:
                     print(
-                        f"{datetime.datetime.now()}: Checking '{list(check_fxns.keys())[i]}' for cohort '{cohort}' and site '{site}'..."
+                        f"{datetime.datetime.now()}: Checking '{i}' for cohort '{cohort}' and site '{site}'..."
                     )
 
-                res_check = check_fxns[i](
+                res_check = fxn(
                     cohort=cohort,
                     site=None if site == choice_all else site,
                     report=report,
