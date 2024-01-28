@@ -29,7 +29,9 @@ def is_synapse_table(synid):
 
 def get_synid_file_name(synids):
     file_names = []
-
+    # HACK: syn.get() does not accept a list of Synapse IDs
+    if isinstance(synids, str):
+        synids = [synids]
     for synid in synids:
         ent = syn.get(synid)
         file_names.append(ent.name)
@@ -53,6 +55,14 @@ def get_synid_from_table(synid, condition=None, with_names=False):
 
 
 def get_data(synid, version=None, sheet=1):
+    """
+    Retrieves data from a Synapse table or file based on the given Synapse ID, version, and sheet number.
+
+    :param synid: The Synapse ID of the table or file.
+    :param version: The version of the table (default is None).
+    :param sheet: The sheet number for Excel files (default is 1).
+    :return: The retrieved data as a DataFrame.
+    """
     if is_synapse_table(synid):
         if version is None:
             query = f"SELECT * FROM {synid}"
@@ -67,7 +77,7 @@ def get_data(synid, version=None, sheet=1):
         if ent.name.endswith(".xlsx"):
             data = pd.read_excel(ent.path, sheet_name=sheet)
         else:
-            data = pd.read_csv(ent.path, na_values=[""])
+            data = pd.read_csv(ent.path, low_memory=False)
 
     return data
 

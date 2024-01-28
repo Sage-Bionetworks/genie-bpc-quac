@@ -259,8 +259,10 @@ else:
                     report=report,
                 )
                 if verbose:
+                    # TODO Make this if statement more refined
+                    print(res_check)
                     print(
-                        f" --> {0 if res_check is None or res_check.isna().all() else len(res_check)} {check_level[index]}(s) identified"
+                        f" --> {0 if res_check is None or len(res_check) == 0 or res_check.empty or all(res_check.isna()) else len(res_check)} {check_level[index]}(s) identified"
                     )
                 res.append(res_check)
 

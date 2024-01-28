@@ -2124,8 +2124,7 @@ def col_five_perc_inc_missing(config, cohort, site, report, output_format="log")
         idx_diff = (f_miss_curr.loc[vars] - f_miss_prev.loc[vars]) > config[
             "thresholds"
         ]["fraction_missing"]
-
-        if idx_diff.any():
+        if not idx_diff.empty:
             output.append(
                 format_output(
                     value=data_curr.columns[idx_diff],
@@ -2212,7 +2211,7 @@ def col_five_perc_dec_missing(config, cohort, site, report, output_format="log")
             "thresholds"
         ]["fraction_missing"]
 
-        if idx_diff.any():
+        if not idx_diff.empty:
             output.append(
                 format_output(
                     value=data_curr.columns[idx_diff],
@@ -2730,7 +2729,7 @@ def invalid_choice_code(config, cohort, site, report, output_format="log"):
                 codes = codes.append(float(codes))
             idx_invalid = data.iloc[:, i].apply(lambda x: x not in [None] + list(codes))
 
-            if idx_invalid.any():
+            if not idx_invalid.empty:
                 output = pd.concat(
                     [
                         output,
