@@ -261,7 +261,7 @@ else:
                 # TODO: make sure all return types are the same from checklist functions
                 if isinstance(res_check, list) and len(res_check) > 0:
                     res_check = pd.concat(res_check)
-                if res_check is None:
+                if res_check is None or len(res_check) == 0:
                     res_check = pd.DataFrame()
                 if verbose:
                     # print(res_check)
