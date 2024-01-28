@@ -244,7 +244,7 @@ else:
     if check_fxns:
         for site in sites:
             # run each applicable QA check
-            res = []
+            res = pd.DataFrame()
             for index, key in enumerate(check_fxns.keys()):
                 fxn = check_fxns[key]
                 if verbose:
@@ -258,13 +258,19 @@ else:
                     site=None if site == choice_all else site,
                     report=report,
                 )
+                # TODO: make sure all return types are the same from checklist functions
+                if isinstance(res_check, list) and len(res_check) > 0:
+                    res_check = pd.concat(res_check)
+                if res_check is None:
+                    res_check = pd.DataFrame()
                 if verbose:
+                    # print(res_check)
+                    # HACK res_check.isna().all().all() doesn't look great
                     # TODO Make this if statement more refined
-                    print(res_check)
                     print(
-                        f" --> {0 if res_check is None or len(res_check) == 0 or res_check.empty or all(res_check.isna()) else len(res_check)} {check_level[index]}(s) identified"
+                        f" --> {0 if res_check is None or len(res_check) == 0 or res_check.empty or res_check.isna().all().all() else len(res_check)} {check_level[index]}(s) identified"
                     )
-                res.append(res_check)
+                res = pd.concat([res, res_check])
 
                 # check for flagged fail check
                 if (
@@ -276,12 +282,14 @@ else:
 
             # write all issues to file
             outfile = f"{cohort}_{site}_{report}_{level}.csv".lower()
-            if len(res):
-                issue_no = list(range(1, len(res) + 1))
-                pd.concat(
-                    [pd.DataFrame(issue_no, columns=["issue_no"]), pd.DataFrame(res)],
-                    axis=1,
-                ).to_csv(outfile, index=False)
+            if not res.empty:
+                # TODO: fix this
+                # issue_no = list(range(1, len(res) + 1))
+                # pd.concat(
+                #     [pd.DataFrame(issue_no, columns=["issue_no"]), pd.DataFrame(res)],
+                #     axis=1,
+                # ).to_csv(outfile, index=False)
+                res.to_csv(outfile, index=False)
             else:
                 with open(outfile, "w") as f:
                     f.write(f"No {level}s triggered.  Congrats! All done!")
