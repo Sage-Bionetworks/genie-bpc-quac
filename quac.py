@@ -132,7 +132,7 @@ syn = synapseclient.login()
 # update config
 config = update_config_for_comparison_report(config)
 config = update_config_for_release_report(config)
-print(config['release'])
+
 # check user input -------------------------------------------------------------
 
 if number is not None:
@@ -229,7 +229,11 @@ check_nos_valid = [
 check_labels = [config["checks"][check_no]["label"] for check_no in check_nos_valid]
 check_level = [config["checks"][check_no]["level"] for check_no in check_nos_valid]
 check_fxns = get_check_functions(check_labels)
-print(check_fxns)
+
+# TODO fix this
+if isinstance(sites, str):
+    sites = [sites]
+
 if overview:
     print(f"Checks ({len(check_fxns)}):")
     for check_no in check_nos_valid:
@@ -241,28 +245,28 @@ else:
         for site in sites:
             # run each applicable QA check
             res = []
-            for i, fxn in check_fxns.items():
-                # fxn = check_fxns[i]
+            for index, key in enumerate(check_fxns.keys()):
+                fxn = check_fxns[key]
                 if verbose:
                     print(
-                        f"{datetime.datetime.now()}: Checking '{i}' for cohort '{cohort}' and site '{site}'..."
+                        f"{datetime.datetime.now()}: Checking '{key}' for cohort '{cohort}' and site '{site}'..."
                     )
 
                 res_check = fxn(
+                    config=config,
                     cohort=cohort,
                     site=None if site == choice_all else site,
                     report=report,
                 )
                 if verbose:
                     print(
-                        f" --> {0 if res_check is None or res_check.isna().all() else len(res_check)} {check_level[i]}(s) identified"
+                        f" --> {0 if res_check is None or res_check.isna().all() else len(res_check)} {check_level[index]}(s) identified"
                     )
-
                 res.append(res_check)
 
                 # check for flagged fail check
                 if (
-                    check_level[i] == "fail"
+                    check_level[index] == "fail"
                     and res_check is not None
                     and len(res_check) > 0
                 ):

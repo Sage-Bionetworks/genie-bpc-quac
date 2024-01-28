@@ -1,10 +1,11 @@
-import pandas as pd
-import synapseclient
-import re
-import pandas as pd
-import numpy as np
+
 import pytz
 from datetime import datetime
+
+import synapseclient
+import synapseutils
+import pandas as pd
+import numpy as np
 
 syn = synapseclient.Synapse()
 syn.login()
@@ -169,38 +170,48 @@ def get_synapse_folder_children(
 
     return children_dict
 
+# TODO clean up
+def get_folder_synid_from_path(synid_folder_root: str, paths: list):
+    # synid_folder_current = synid_folder_root
+    # subfolders = path.split("/")
 
-def get_folder_synid_from_path(synid_folder_root, path):
-    synid_folder_current = synid_folder_root
-    subfolders = path.split("/")
+    # for subfolder in subfolders:
+    #     synid_folder_children = get_synapse_folder_children(
+    #         synid_folder_current, include_types=["folder"]
+    #     )
 
-    for subfolder in subfolders:
-        synid_folder_children = get_synapse_folder_children(
-            synid_folder_current, include_types=["folder"]
-        )
+    #     if subfolder not in synid_folder_children:
+    #         return None
 
-        if subfolder not in synid_folder_children:
-            return None
+    #     synid_folder_current = synid_folder_children[subfolder]
 
-        synid_folder_current = synid_folder_children[subfolder]
+    # return synid_folder_current
+    folder_hiearchy = synapseutils.walk(syn, synid_folder_root)
+    for dirpath, _, _ in folder_hiearchy:
+        if dirpath[0].endswith(paths):
+            return dirpath[1]
+    return None
+# TODO Clean up
+def get_file_synid_from_path(synid_folder_root: str, paths: list, file_name: str):
+    # path_parts = path.split("/")
+    # file_name = path_parts[-1]
+    # path_abbrev = "/".join(path_parts[:-1])
 
-    return synid_folder_current
+    # synid_folder_dest = get_folder_synid_from_path(synid_folder_root, path_abbrev)
+    # synid_folder_children = get_synapse_folder_children(
+    #     synid_folder_dest, include_types=["file"]
+    # )
 
-
-def get_file_synid_from_path(synid_folder_root, path):
-    path_parts = path.split("/")
-    file_name = path_parts[-1]
-    path_abbrev = "/".join(path_parts[:-1])
-
-    synid_folder_dest = get_folder_synid_from_path(synid_folder_root, path_abbrev)
-    synid_folder_children = get_synapse_folder_children(
-        synid_folder_dest, include_types=["file"]
-    )
-
-    if file_name not in synid_folder_children:
-        return None
-
-    return synid_folder_children[file_name]
+    # if file_name not in synid_folder_children:
+    #     return None
+    folder_hiearchy = synapseutils.walk(syn, synid_folder_root)
+    for dirpath, dirname, files in folder_hiearchy:
+        if dirpath[0].endswith(paths):
+            for filename, synid in files:
+                if filename == file_name:
+                    synid_file = synid
+                    return synid_file
+    return None
 
 
 # helper functions
