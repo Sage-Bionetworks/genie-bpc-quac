@@ -231,6 +231,10 @@ check_level = [config["checks"][check_no]["level"] for check_no in check_nos_val
 check_fxns = get_check_functions(check_labels)
 
 # TODO fix this
+# if sites == choice_all:
+#     sites = list(
+#         set(config["uploads"][cohort].keys()) - set(config["constants"]["sage"])
+#     )
 if isinstance(sites, str):
     sites = [sites]
 

@@ -396,15 +396,21 @@ def get_bpc_data_table(config, synid_table, cohort, site=np.nan, select=np.nan, 
     return data
 
 
-def get_bpc_data_release(cohort, site, version, file_name):
+def get_bpc_data_release(cohort, site, version, file_name, current=False):
     old_accepted_path = f"{cohort}/{version}/{cohort}_{version}_clinical_data"
     new_path = f"{cohort}/{version}/clinical_data"
-
-    synid_file = get_file_synid_from_path(
-        synid_folder_root=TOP_CONFIG["synapse"]["release"]["id"],
-        paths=(old_accepted_path,new_path),
-        file_name=file_name
-    )
+    if not current:
+        synid_file = get_file_synid_from_path(
+            synid_folder_root=TOP_CONFIG["synapse"]["release"]["id"],
+            paths=(old_accepted_path,new_path),
+            file_name=file_name
+        )
+    else:
+        synid_file = get_file_synid_from_path(
+            synid_folder_root="syn50876969",
+            paths=(old_accepted_path,new_path),
+            file_name=file_name
+        )
     # import synapseutils
     # print(TOP_CONFIG["synapse"]["release"]["id"])
     # folder_hiearchy = synapseutils.walk(syn, TOP_CONFIG["synapse"]["release"]["id"])
@@ -417,14 +423,14 @@ def get_bpc_data_release(cohort, site, version, file_name):
     #                 break
     # print(synid_file)
     data = get_data(synid_file)
-
+    # print(data)
     if not pd.isna(site):
         data = data[data["record_id"].str.contains(site)]
 
     return data
 
 
-def get_bpc_data(config, cohort, site, report, obj=None):
+def get_bpc_data(config, cohort, site, report, obj=None, current=False):
     if report in ["upload", "masking"]:
         return get_bpc_data_upload(
             cohort,
@@ -447,7 +453,7 @@ def get_bpc_data(config, cohort, site, report, obj=None):
 
     if report in ["release"]:
         return get_bpc_data_release(
-            cohort=cohort, site=site, version=obj["version"], file_name=obj["file_name"]
+            cohort=cohort, site=site, version=obj["version"], file_name=obj["file_name"], current=current
         )
 
     return None
@@ -507,7 +513,7 @@ def get_bpc_patient_sample_added_removed(
         obj_upload = config["uploads"][cohort][site]
         synid_entity_source = obj_upload["data1"]
         data_current_irr = get_bpc_data(
-            config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+            config=config, cohort=cohort, site=site, report=report, obj=obj_upload,
         )
         data_current = data_current_irr[
             ~data_current_irr[config["column_name"]["patient_id"]].str.contains(
@@ -527,7 +533,7 @@ def get_bpc_patient_sample_added_removed(
             cohort=cohort,
             site=site,
             report=report,
-            obj={"synid_table": synid_entity_source, "previous": False, "select": None},
+            obj={"synid_table": synid_entity_source, "previous": False, "select": None}
         )
         data_previous = get_bpc_data(
             cohort=cohort,
@@ -556,6 +562,7 @@ def get_bpc_patient_sample_added_removed(
             site=site,
             report=report,
             obj={"version": version_current, "file_name": file_name},
+            current=True
         )
         data_previous = get_bpc_data(
             config=config,
@@ -637,10 +644,23 @@ def get_bpc_set_view(config, cohort, report, version=np.nan):
         # path = f"{cohort}/{version}/{cohort}_{version}_clinical_data"
         old_accepted_path = f"{cohort}/{version}/{cohort}_{version}_clinical_data"
         new_path = f"{cohort}/{version}/clinical_data"
+
         synid_folder = get_folder_synid_from_path(
             synid_folder_root=config["synapse"]["release"]["id"],
             paths=(old_accepted_path, new_path)
         )
+        # TODO fix this issue between newer releases being in staging
+        # TODO and older releases being in a separate folder
+        if synid_folder is None:
+            synid_folder = get_folder_synid_from_path(
+                synid_folder_root="syn50876969",
+                paths=(old_accepted_path, new_path)
+            )
+        if synid_folder is None:
+            print("bpc_set_view", old_accepted_path)
+            print("bpc_set_view", new_path)
+            print("bpc_set_view", config["synapse"]["release"]["id"])
+            raise ValueError("fix script")
         raw = get_synapse_folder_children(
             synapse_id=synid_folder, include_types=["file"]
         )
@@ -651,6 +671,7 @@ def get_bpc_set_view(config, cohort, report, version=np.nan):
                 "form": list(raw.keys()),
             }
         )
+        print(view)
     return view
 
 
@@ -667,6 +688,7 @@ def get_bpc_pair(config, cohort, site, report, synid_entity_source):
                 "select": np.nan,
                 "previous": False,
             },
+            current=True
         )
         data["previous"] = get_bpc_data(
             config=config,
@@ -682,6 +704,7 @@ def get_bpc_pair(config, cohort, site, report, synid_entity_source):
     elif report == "release":
         version_current = config["release"][cohort]["current"]
         version_previous = config["release"][cohort]["previous"]
+        print(synid_entity_source)
         file_name = syn.get(synid_entity_source, downloadFile=False).name
         data["current"] = get_bpc_data(
             config=config,
@@ -689,6 +712,7 @@ def get_bpc_pair(config, cohort, site, report, synid_entity_source):
             site=site,
             report=report,
             obj={"version": version_current, "file_name": file_name},
+            current=True
         )
         data["previous"] = get_bpc_data(
             config=config,
@@ -1181,7 +1205,6 @@ def rows_added(config, cohort, site, report, output_format="log"):
     view = get_bpc_set_view(config, cohort, report)
     output = pd.DataFrame()
     synid_entity_source = ""
-
     for i in range(len(view)):
         if report in ["table", "comparison"]:
             synid_entity_source = view["id"][i]
@@ -1201,12 +1224,13 @@ def rows_added(config, cohort, site, report, output_format="log"):
                     set(data["current"].columns)
                 )
             )
-
+        cur_primary_key_values = data["current"][primary_keys].agg('-'.join, axis=1)
+        prev_primary_key_values = data["previous"][primary_keys].agg('-'.join, axis=1)
         data_added = data["current"][
-            ~data["current"][primary_keys].isin(data["previous"][primary_keys])
+            ~cur_primary_key_values.isin(prev_primary_key_values)
         ][primary_keys]
-
-        if len(data_added):
+        if not data_added.empty:
+            # TODO use pd.concat
             output = output.append(
                 format_output(
                     value=[None] * len(data_added),
@@ -1252,12 +1276,16 @@ def rows_removed(config, cohort, site, report, output_format="log", debug=False)
                     set(data["current"].columns)
                 )
             )
-
+        cur_primary_key_values = data["current"][primary_keys].agg('-'.join, axis=1)
+        prev_primary_key_values = data["previous"][primary_keys].agg('-'.join, axis=1)
         data_removed = data["previous"][
-            ~data["previous"][primary_keys].isin(data["current"][primary_keys])
+            ~prev_primary_key_values.isin(cur_primary_key_values)
         ][primary_keys]
+        # data_removed = data["previous"][
+        #     ~data["previous"][primary_keys].isin(data["current"][primary_keys])
+        # ][primary_keys]
 
-        if len(data_removed):
+        if not data_removed.empty:
             output = output.append(
                 format_output(
                     value=[None] * len(data_removed),
@@ -2083,6 +2111,7 @@ def col_five_perc_inc_missing(config, cohort, site, report, output_format="log")
                     "previous": False,
                     "select": None,
                 },
+                current=True
             )
             data_prev = get_bpc_data(
                 config=config,
@@ -2105,6 +2134,7 @@ def col_five_perc_inc_missing(config, cohort, site, report, output_format="log")
                     "version": config["release"][cohort]["current"],
                     "file_name": synid_view_all["form"].iloc[i],
                 },
+                current=True
             )
             data_prev = get_bpc_data(
                 config=config,
@@ -2119,19 +2149,21 @@ def col_five_perc_inc_missing(config, cohort, site, report, output_format="log")
 
         f_miss_curr = data_curr.apply(fraction_empty)
         f_miss_prev = data_prev.apply(fraction_empty)
-
         vars = f_miss_curr.index.intersection(f_miss_prev.index)
         idx_diff = (f_miss_curr.loc[vars] - f_miss_prev.loc[vars]) > config[
             "thresholds"
         ]["fraction_missing"]
-        if not idx_diff.empty:
+
+        if idx_diff.any():
             output.append(
                 format_output(
-                    value=data_curr.columns[idx_diff],
+                    # value=data_curr.columns[idx_diff],
+                    value=vars.to_series()[idx_diff],
                     cohort=cohort,
                     site=site,
                     output_format=output_format,
-                    column_name=data_curr.columns[idx_diff],
+                    # column_name=data_curr.columns[idx_diff],
+                    column_name=vars.to_series()[idx_diff],
                     synid=synid_view_all["id"].iloc[i],
                     patient_id=None,
                     instrument=None,
@@ -2214,11 +2246,11 @@ def col_five_perc_dec_missing(config, cohort, site, report, output_format="log")
         if not idx_diff.empty:
             output.append(
                 format_output(
-                    value=data_curr.columns[idx_diff],
+                    value=vars.to_series()[idx_diff],
                     cohort=cohort,
                     site=site,
                     output_format=output_format,
-                    column_name=data_curr.columns[idx_diff],
+                    value=vars.to_series()[idx_diff],
                     synid=synid_view_all["id"].iloc[i],
                     patient_id=None,
                     instrument=None,
