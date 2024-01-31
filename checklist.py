@@ -657,9 +657,6 @@ def get_bpc_set_view(config, cohort, report, version=np.nan):
                 paths=(old_accepted_path, new_path)
             )
         if synid_folder is None:
-            print("bpc_set_view", old_accepted_path)
-            print("bpc_set_view", new_path)
-            print("bpc_set_view", config["synapse"]["release"]["id"])
             raise ValueError("fix script")
         raw = get_synapse_folder_children(
             synapse_id=synid_folder, include_types=["file"]
@@ -671,7 +668,6 @@ def get_bpc_set_view(config, cohort, report, version=np.nan):
                 "form": list(raw.keys()),
             }
         )
-        print(view)
     return view
 
 
@@ -704,7 +700,6 @@ def get_bpc_pair(config, cohort, site, report, synid_entity_source):
     elif report == "release":
         version_current = config["release"][cohort]["current"]
         version_previous = config["release"][cohort]["previous"]
-        print(synid_entity_source)
         file_name = syn.get(synid_entity_source, downloadFile=False).name
         data["current"] = get_bpc_data(
             config=config,
@@ -2243,14 +2238,14 @@ def col_five_perc_dec_missing(config, cohort, site, report, output_format="log")
             "thresholds"
         ]["fraction_missing"]
 
-        if not idx_diff.empty:
+        if idx_diff.any():
             output.append(
                 format_output(
                     value=vars.to_series()[idx_diff],
                     cohort=cohort,
                     site=site,
                     output_format=output_format,
-                    value=vars.to_series()[idx_diff],
+                    column_name=vars.to_series()[idx_diff],
                     synid=synid_view_all["id"].iloc[i],
                     patient_id=None,
                     instrument=None,

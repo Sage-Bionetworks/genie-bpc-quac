@@ -73,7 +73,6 @@ def get_data(synid, version=None, sheet=1):
         data = results.asDataFrame()
     else:
         ent = syn.get(synid, version=version)
-        print(ent.name)
         if ent.name.endswith(".xlsx"):
             data = pd.read_excel(ent.path, sheet_name=sheet)
         else:
@@ -219,8 +218,8 @@ def get_file_synid_from_path(synid_folder_root: str, paths: list, file_name: str
 
     # if file_name not in synid_folder_children:
     #     return None
-    print(file_name)
-    print(synid_folder_root)
+    # print(file_name)
+    # print(synid_folder_root)
     folder_hiearchy = synapseutils.walk(syn, synid_folder_root)
     for dirpath, dirname, files in folder_hiearchy:
         # print(dirpath)
