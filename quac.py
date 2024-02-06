@@ -275,7 +275,7 @@ else:
                         f" --> {0 if res_check is None or len(res_check) == 0 or res_check.empty or res_check.isna().all().all() else len(res_check)} {check_level[index]}(s) identified"
                     )
                 res = pd.concat([res, res_check])
-                res.to_csv('test.csv')
+                print(res)
                 # check for flagged fail check
                 if (
                     check_level[index] == "fail"

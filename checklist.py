@@ -2750,7 +2750,6 @@ def invalid_choice_code(config, cohort, site, report, output_format="log"):
         file_name="Data Dictionary non-PHI",
     )
     dd = get_data(synid_dd)
-    print(dd['Variable / Field Name'].is_unique)
 
     for var_name in data.columns:
         choices = dd[dd["Variable / Field Name"] == var_name][
@@ -2758,8 +2757,15 @@ def invalid_choice_code(config, cohort, site, report, output_format="log"):
         ]
         if not choices.empty and not choices.isnull().all():
             codes = parse_mapping(choices.iloc[0])["codes"]
+            list_codes = codes.to_list()
+            int_codes = [int(code) if code.isnumeric() else code for code in list_codes]
+            str_codes = [str(code) for code in int_codes]
+
+            list_codes.extend(int_codes)
+            list_codes.extend(str_codes)
+            list_codes = set(list_codes)
             # TODO check if this logic is right
-            idx_invalid = ~data[var_name].dropna().isin(codes)
+            idx_invalid = ~data[var_name].dropna().isin(list_codes)
             if idx_invalid.any():
                 output = pd.concat(
                     [
@@ -2773,19 +2779,18 @@ def invalid_choice_code(config, cohort, site, report, output_format="log"):
                             synid=obj_upload["data1"],
                             patient_id=data.loc[
                                 idx_invalid.index[idx_invalid], config["column_name"]["patient_id"]
-                            ],
+                            ].to_list(),
                             instrument=data.loc[
                                 idx_invalid.index[idx_invalid], config["column_name"]["instrument"]
-                            ],
+                            ].to_list(),
                             instance=data.loc[
                                 idx_invalid.index[idx_invalid], config["column_name"]["instance"]
-                            ],
+                            ].to_list(),
                             check_no=50,
                             infer_site=False,
                         ),
                     ]
                 )
-
     return output
 
 
