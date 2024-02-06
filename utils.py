@@ -258,19 +258,24 @@ def fraction_empty(vector, na_strings=np.nan):
     return sum(vector.isin([na_strings])) / len(vector)
 
 
-def is_double(x):
+# def is_double(x):
+#     try:
+#         float(x)
+#         return True
+#     except ValueError:
+#         return False
+
+
+# def infer_data_type(x):
+#     if is_double(x):
+#         return "numeric"
+#     return "character"
+def infer_data_type(string):
     try:
-        float(x)
-        return True
-    except ValueError:
-        return False
-
-
-def infer_data_type(x):
-    if is_double(x):
+        float(string)
         return "numeric"
-    return "character"
-
+    except (ValueError, TypeError):
+        return "character"
 
 def get_columns_added(data_current, data_previous):
     return list(set(data_current.columns) - set(data_previous.columns))

@@ -1054,7 +1054,6 @@ def col_data_type_sor_mismatch(config, cohort, site, report, output_format="log"
 
     for obj in objs:
         data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
-
         # remove allowed non-integer values
         for var in config["noninteger_values"].keys():
             if var in data.columns:
@@ -1119,28 +1118,24 @@ def col_entry_data_type_sor_mismatch(config, cohort, site, report, output_format
 
     for obj in objs:
         data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
+        data.to_csv("testing.csv", index=False)
 
         # remove allowed non-integer values
         for var in config["noninteger_values"].keys():
             if var in data.columns:
-                data.loc[data[var].isin(config["noninteger_values"][var]), var] = None
-
+                data.loc[data[var].isin(config["noninteger_values"][var]), var] = float('nan')
         # variable data types from scope of release
-        # type_sor = get_bpc_sor_data_type(var_name=data.columns, sor=sor)
-        # print(type_sor)
-        # type_sor = pd.Series(type_sor)
-        # type_sor.index = data.columns
-        # print(data.shape)
 
         type_inf = []
-        for col in data.columns:
-            try:
-                data[col].astype(float)
-                type_inf.append("numeric")
-            except ValueError:
-                type_inf.append("character")
         type_sor = get_bpc_sor_data_type(var_name=data.columns, sor=sor)
-        idx = (pd.Series(type_sor) == "character") & (pd.Series(type_inf) == "numeric")
+        type_sor_col = pd.Series(type_sor)
+        type_sor_col.index = data.columns
+
+        for col in data.columns:
+            if type_sor_col[col] == "numeric":
+                type_inf = data[col].apply(infer_data_type)
+                idx = type_inf == "character"
+
         if idx.any():
             # format output
             output.append(
@@ -1160,33 +1155,6 @@ def col_entry_data_type_sor_mismatch(config, cohort, site, report, output_format
                     infer_site=False,
                 )
             )
-        # for i in range(data.shape[1]):
-        #     type_sor_col = type_sor[data.columns[i]]
-
-        #     if pd.notnull(type_sor_col) and type_sor_col == "numeric":
-        #         type_inf = config["maps"]["data_type"][infer_data_type(data.iloc[:, i])]
-        #         idx = type_inf == "character"
-
-        #         # format output
-        #         output.append(
-        #             format_output(
-        #                 value=data.iloc[idx, i],
-        #                 cohort=cohort,
-        #                 site=site,
-        #                 output_format=output_format,
-        #                 column_name=data.columns[i],
-        #                 synid=obj.get('data1')
-        #                 if obj.get('data1') is not None
-        #                 else obj["synid_table"],
-        #                 patient_id=data["record_id"][idx],
-        #                 instrument=get_bpc_table_instrument(obj["synid_table"])
-        #                 if obj.get('data1') is None
-        #                 else data["redcap_repeat_instrument"][idx],
-        #                 instance=data["redcap_repeat_instance"][idx],
-        #                 check_no=13,
-        #                 infer_site=False,
-        #             )
-        #         )
     return output
 
 
