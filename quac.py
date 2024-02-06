@@ -20,7 +20,7 @@ from utils import save_to_synapse
 from checklist import (
     get_check_functions,
     update_config_for_comparison_report,
-    update_config_for_release_report
+    update_config_for_release_report,
 )
 
 tic = time.time()

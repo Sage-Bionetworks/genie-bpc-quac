@@ -1,4 +1,3 @@
-
 import pytz
 from datetime import datetime
 
@@ -177,7 +176,9 @@ def get_synapse_folder_children(
 
     return children_dict
 
+
 from functools import cache
+
 
 # TODO clean up
 @cache
@@ -201,6 +202,7 @@ def get_folder_synid_from_path(synid_folder_root: str, paths: list):
         if dirpath[0].endswith(paths):
             return dirpath[1]
     return None
+
 
 # TODO Clean up
 @cache
@@ -276,6 +278,7 @@ def infer_data_type(string):
         return "numeric"
     except (ValueError, TypeError):
         return "character"
+
 
 def get_columns_added(data_current, data_previous):
     return list(set(data_current.columns) - set(data_previous.columns))
@@ -452,8 +455,10 @@ def parse_phase_from_cohort(cohort):
 
     return [cohort, 1]
 
+
 from datetime import datetime, timedelta
 from synapseclient import Synapse
+
 
 def is_synapse_entity_modified(syn, synapse_id, value, unit="day"):
     entity = syn.get(synapse_id, downloadFile=False)

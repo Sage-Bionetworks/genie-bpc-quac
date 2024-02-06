@@ -37,6 +37,7 @@ if not os.path.exists("config.yaml"):
 with open(os.path.join(workdir, "config.yaml"), "r") as stream:
     TOP_CONFIG = yaml.safe_load(stream)
 
+
 # list of functions ------------------------------------
 def get_check_functions(labels):
     """
@@ -284,12 +285,8 @@ def get_bpc_synid_prissmm(
     file_name=["Import Template", "Data Dictionary non-PHI"],
 ):
     query = f"SELECT id FROM {synid_table_prissmm} WHERE cohort = '{cohort}' ORDER BY name DESC LIMIT 1"
-    synid_folder_prissmm = (
-        syn.tableQuery(query).asDataFrame().values[0][0]
-    )
-    synid_prissmm_children = list(
-        syn.getChildren(synid_folder_prissmm)
-    )
+    synid_folder_prissmm = syn.tableQuery(query).asDataFrame().values[0][0]
+    synid_prissmm_children = list(syn.getChildren(synid_folder_prissmm))
     synid_prissmm_children_ids = {
         child["name"]: child["id"] for child in synid_prissmm_children
     }
@@ -365,7 +362,9 @@ def get_bpc_version_at_date(
 # bpc functions -------------------------------------
 
 
-def get_bpc_data_table(config, synid_table, cohort, site=None, select=None, previous=False):
+def get_bpc_data_table(
+    config, synid_table, cohort, site=None, select=None, previous=False
+):
     version_no = None
 
     if previous:
@@ -402,14 +401,14 @@ def get_bpc_data_release(cohort, site, version, file_name, current=False):
     if not current:
         synid_file = get_file_synid_from_path(
             synid_folder_root=TOP_CONFIG["synapse"]["release"]["id"],
-            paths=(old_accepted_path,new_path),
-            file_name=file_name
+            paths=(old_accepted_path, new_path),
+            file_name=file_name,
         )
     else:
         synid_file = get_file_synid_from_path(
             synid_folder_root="syn50876969",
-            paths=(old_accepted_path,new_path),
-            file_name=file_name
+            paths=(old_accepted_path, new_path),
+            file_name=file_name,
         )
 
     data = get_data(synid_file)
@@ -428,7 +427,7 @@ def get_bpc_data(config, cohort, site, report, obj=None, current=False):
             synid_file_data1=obj.get("data1"),
             synid_file_data2=obj.get("data2"),
             synid_file_header1=obj.get("header1"),
-            synid_file_header2=obj.get("header2")
+            synid_file_header2=obj.get("header2"),
         )
 
     if report in ["table", "comparison"]:
@@ -443,7 +442,11 @@ def get_bpc_data(config, cohort, site, report, obj=None, current=False):
 
     if report in ["release"]:
         return get_bpc_data_release(
-            cohort=cohort, site=site, version=obj["version"], file_name=obj["file_name"], current=current
+            cohort=cohort,
+            site=site,
+            version=obj["version"],
+            file_name=obj["file_name"],
+            current=current,
         )
 
     return None
@@ -463,7 +466,13 @@ def get_bpc_index_missing_sample(
 
 
 def get_bpc_patient_sample_added_removed(
-    config, cohort, site, report, check_patient, check_added, account_for_retracted=False
+    config,
+    cohort,
+    site,
+    report,
+    check_patient,
+    check_added,
+    account_for_retracted=False,
 ):
     column_name = ""
     table_name = ""
@@ -503,7 +512,11 @@ def get_bpc_patient_sample_added_removed(
         obj_upload = config["uploads"][cohort][site]
         synid_entity_source = obj_upload["data1"]
         data_current_irr = get_bpc_data(
-            config=config, cohort=cohort, site=site, report=report, obj=obj_upload,
+            config=config,
+            cohort=cohort,
+            site=site,
+            report=report,
+            obj=obj_upload,
         )
         data_current = data_current_irr[
             ~data_current_irr[config["column_name"]["patient_id"]].str.contains(
@@ -523,7 +536,7 @@ def get_bpc_patient_sample_added_removed(
             cohort=cohort,
             site=site,
             report=report,
-            obj={"synid_table": synid_entity_source, "previous": False, "select": None}
+            obj={"synid_table": synid_entity_source, "previous": False, "select": None},
         )
         data_previous = get_bpc_data(
             cohort=cohort,
@@ -540,7 +553,7 @@ def get_bpc_patient_sample_added_removed(
         synid_entity_source = get_file_synid_from_path(
             synid_folder_root=config["synapse"]["release"]["id"],
             paths=(path, new_path),
-            file_name=file_name
+            file_name=file_name,
         )
 
         if version_previous is None:
@@ -552,7 +565,7 @@ def get_bpc_patient_sample_added_removed(
             site=site,
             report=report,
             obj={"version": version_current, "file_name": file_name},
-            current=True
+            current=True,
         )
         data_previous = get_bpc_data(
             config=config,
@@ -641,14 +654,13 @@ def get_bpc_set_view(config, cohort, report, version=np.nan):
 
         synid_folder = get_folder_synid_from_path(
             synid_folder_root=config["synapse"]["release"]["id"],
-            paths=(old_accepted_path, new_path)
+            paths=(old_accepted_path, new_path),
         )
         # TODO fix this issue between newer releases being in staging
         # TODO and older releases being in a separate folder
         if synid_folder is None:
             synid_folder = get_folder_synid_from_path(
-                synid_folder_root="syn50876969",
-                paths=(old_accepted_path, new_path)
+                synid_folder_root="syn50876969", paths=(old_accepted_path, new_path)
             )
         if synid_folder is None:
             raise ValueError("fix script")
@@ -678,7 +690,7 @@ def get_bpc_pair(config, cohort, site, report, synid_entity_source):
                 "select": np.nan,
                 "previous": False,
             },
-            current=True
+            current=True,
         )
         data["previous"] = get_bpc_data(
             config=config,
@@ -701,7 +713,7 @@ def get_bpc_pair(config, cohort, site, report, synid_entity_source):
             site=site,
             report=report,
             obj={"version": version_current, "file_name": file_name},
-            current=True
+            current=True,
         )
         data["previous"] = get_bpc_data(
             config=config,
@@ -781,7 +793,9 @@ def col_import_template_added(config, cohort, site, report, output_format="log")
     )
 
     data_template = get_data(synid_template)
-    data_upload = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data_upload = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     results = get_columns_added(data_current=data_upload, data_previous=data_template)
     output = format_output(
@@ -804,7 +818,9 @@ def col_import_template_removed(config, cohort, site, report, output_format="log
     )
 
     data_template = get_data(synid_template)
-    data_upload = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data_upload = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     results = get_columns_removed(data_current=data_upload, data_previous=data_template)
     output = format_output(
@@ -822,7 +838,12 @@ def col_import_template_removed(config, cohort, site, report, output_format="log
 
 def patient_added(config, cohort, site, report, output_format="log"):
     results = get_bpc_patient_sample_added_removed(
-        config=config, cohort=cohort, site=site, report=report, check_patient=True, check_added=True
+        config=config,
+        cohort=cohort,
+        site=site,
+        report=report,
+        check_patient=True,
+        check_added=True,
     )
     output = format_output(
         value=results["ids"],
@@ -840,7 +861,12 @@ def patient_added(config, cohort, site, report, output_format="log"):
 
 def patient_removed(config, cohort, site, report, output_format="log"):
     results = get_bpc_patient_sample_added_removed(
-        config=config, cohort=cohort, site=site, report=report, check_patient=True, check_added=False
+        config=config,
+        cohort=cohort,
+        site=site,
+        report=report,
+        check_patient=True,
+        check_added=False,
     )
     output = format_output(
         value=results["ids"],
@@ -858,7 +884,12 @@ def patient_removed(config, cohort, site, report, output_format="log"):
 
 def sample_added(config, cohort, site, report, output_format="log"):
     results = get_bpc_patient_sample_added_removed(
-        config=config, cohort=cohort, site=site, report=report, check_patient=False, check_added=True
+        config=config,
+        cohort=cohort,
+        site=site,
+        report=report,
+        check_patient=False,
+        check_added=True,
     )
     output = format_output(
         results["ids"],
@@ -875,7 +906,12 @@ def sample_added(config, cohort, site, report, output_format="log"):
 
 def sample_removed(config, cohort, site, report, output_format="log"):
     results = get_bpc_patient_sample_added_removed(
-        config=config, cohort=cohort, site=site, report=report, check_patient=False, check_added=False
+        config=config,
+        cohort=cohort,
+        site=site,
+        report=report,
+        check_patient=False,
+        check_added=False,
     )
     output = format_output(
         results["ids"],
@@ -910,7 +946,9 @@ def empty_row(config, cohort, site, report, output_format="log"):
         return None
 
     for obj in objs:
-        data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
+        data = get_bpc_data(
+            config=config, cohort=cohort, site=site, report=report, obj=obj
+        )
 
         complete_cols = [col for col in data.columns if "complete" in col]
         redcap_cols = [
@@ -932,7 +970,9 @@ def empty_row(config, cohort, site, report, output_format="log"):
                     site=site,
                     output_format=output_format,
                     column_name=None,
-                    synid=obj.get('data1') if obj.get("data1") is not None else obj["synid_table"],
+                    synid=obj.get("data1")
+                    if obj.get("data1") is not None
+                    else obj["synid_table"],
                     patient_id=data.loc[idx, config["column_name"]["patient_id"]],
                     instrument=get_bpc_table_instrument(obj["synid_table"])
                     if obj.get("data1") is None
@@ -948,7 +988,9 @@ def empty_row(config, cohort, site, report, output_format="log"):
 
 def missing_sample_id(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     idx = get_bpc_index_missing_sample(data=data)
 
     output = format_output(
@@ -987,7 +1029,9 @@ def col_empty(config, cohort, site, report, output_format="log"):
         return None
 
     for obj in objs:
-        data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
+        data = get_bpc_data(
+            config=config, cohort=cohort, site=site, report=report, obj=obj
+        )
 
         is_col_empty = data.apply(lambda col: is_empty(col), axis=0)
         col_root_empty = [
@@ -1009,7 +1053,9 @@ def col_empty(config, cohort, site, report, output_format="log"):
                 site=site,
                 output_format=output_format,
                 column_name=col_empty,
-                synid=obj.get('data1') if obj.get('data1') is not None else obj["synid_table"],
+                synid=obj.get("data1")
+                if obj.get("data1") is not None
+                else obj["synid_table"],
                 patient_id=None,
                 instrument=instrument,
                 instance=None,
@@ -1053,7 +1099,9 @@ def col_data_type_sor_mismatch(config, cohort, site, report, output_format="log"
         return None
 
     for obj in objs:
-        data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
+        data = get_bpc_data(
+            config=config, cohort=cohort, site=site, report=report, obj=obj
+        )
         # remove allowed non-integer values
         for var in config["noninteger_values"].keys():
             if var in data.columns:
@@ -1079,10 +1127,12 @@ def col_data_type_sor_mismatch(config, cohort, site, report, output_format="log"
                     site=site,
                     output_format=output_format,
                     column_name=None,
-                    synid=obj.get('data1') if obj.get('data1') is not None else obj["synid_table"],
+                    synid=obj.get("data1")
+                    if obj.get("data1") is not None
+                    else obj["synid_table"],
                     patient_id=None,
                     instrument=get_bpc_table_instrument(obj["synid_table"])
-                    if obj.get('data1') is None
+                    if obj.get("data1") is None
                     else None,
                     instance=None,
                     check_no=12,
@@ -1117,13 +1167,17 @@ def col_entry_data_type_sor_mismatch(config, cohort, site, report, output_format
         return None
 
     for obj in objs:
-        data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
+        data = get_bpc_data(
+            config=config, cohort=cohort, site=site, report=report, obj=obj
+        )
         data.to_csv("testing.csv", index=False)
 
         # remove allowed non-integer values
         for var in config["noninteger_values"].keys():
             if var in data.columns:
-                data.loc[data[var].isin(config["noninteger_values"][var]), var] = float('nan')
+                data.loc[data[var].isin(config["noninteger_values"][var]), var] = float(
+                    "nan"
+                )
         # variable data types from scope of release
 
         type_inf = []
@@ -1145,10 +1199,12 @@ def col_entry_data_type_sor_mismatch(config, cohort, site, report, output_format
                     site=site,
                     output_format=output_format,
                     column_name=None,
-                    synid=obj.get('data1') if obj.get('data1') is not None else obj["synid_table"],
+                    synid=obj.get("data1")
+                    if obj.get("data1") is not None
+                    else obj["synid_table"],
                     patient_id=None,
                     instrument=get_bpc_table_instrument(obj["synid_table"])
-                    if obj.get('data1') is None
+                    if obj.get("data1") is None
                     else None,
                     instance=None,
                     check_no=13,
@@ -1187,7 +1243,7 @@ def no_mapped_diag(config, cohort, site, report, output_format="log"):
         site=site,
         output_format=output_format,
         column_name=config["column_name"]["oncotree_code"],
-        synid=obj["synid_table"] if obj.get('data1') is None else obj.get('data1'),
+        synid=obj["synid_table"] if obj.get("data1") is None else obj.get("data1"),
         patient_id=res[config["column_name"]["patient_id"]],
         instrument=config["instrument_name"]["panel"],
         instance=res[config["column_name"]["instance"]],
@@ -1221,8 +1277,8 @@ def rows_added(config, cohort, site, report, output_format="log"):
                     set(data["current"].columns)
                 )
             )
-        cur_primary_key_values = data["current"][primary_keys].agg('-'.join, axis=1)
-        prev_primary_key_values = data["previous"][primary_keys].agg('-'.join, axis=1)
+        cur_primary_key_values = data["current"][primary_keys].agg("-".join, axis=1)
+        prev_primary_key_values = data["previous"][primary_keys].agg("-".join, axis=1)
         data_added = data["current"][
             ~cur_primary_key_values.isin(prev_primary_key_values)
         ][primary_keys]
@@ -1273,8 +1329,8 @@ def rows_removed(config, cohort, site, report, output_format="log", debug=False)
                     set(data["current"].columns)
                 )
             )
-        cur_primary_key_values = data["current"][primary_keys].agg('-'.join, axis=1)
-        prev_primary_key_values = data["previous"][primary_keys].agg('-'.join, axis=1)
+        cur_primary_key_values = data["current"][primary_keys].agg("-".join, axis=1)
+        prev_primary_key_values = data["previous"][primary_keys].agg("-".join, axis=1)
         data_removed = data["previous"][
             ~prev_primary_key_values.isin(cur_primary_key_values)
         ][primary_keys]
@@ -1310,7 +1366,9 @@ def sample_not_in_main_genie(config, cohort, site, report, output_format="log"):
         config["synapse"]["genie_sample"]["id"], patient=True, sample=True
     )
     # TODO Why not getting strings that end in 2?
-    bpc_data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    bpc_data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     print(bpc_data["cpt_genie_sample_id"].isnull())
     print(bpc_data["cpt_genie_sample_id"].str.endswith("-2"))
     bpc_sids = bpc_data["cpt_genie_sample_id"][
@@ -1347,7 +1405,9 @@ def patient_not_in_main_genie(config, cohort, site, report, output_format="log")
     mg_ids = get_main_genie_ids(
         config["synapse"]["genie_sample"]["id"], patient=True, sample=False
     )
-    bpc_data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    bpc_data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     bpc_pids = bpc_data["record_id"][~bpc_data["record_id"].str.contains("[-_]2$")]
 
     bpc_not_mg_pid = get_added(bpc_pids, mg_ids["PATIENT_ID"])
@@ -1369,9 +1429,13 @@ def patient_not_in_main_genie(config, cohort, site, report, output_format="log")
     return output
 
 
-def col_data_datetime_format_mismatch(config, cohort, site, report, output_format="log"):
+def col_data_datetime_format_mismatch(
+    config, cohort, site, report, output_format="log"
+):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     synid_file_dd = get_bpc_synid_prissmm(
         synid_table_prissmm=config["synapse"]["prissmm"]["id"],
@@ -1417,9 +1481,13 @@ def col_data_datetime_format_mismatch(config, cohort, site, report, output_forma
     return output
 
 
-def col_entry_datetime_format_mismatch(config, cohort, site, report, output_format="log"):
+def col_entry_datetime_format_mismatch(
+    config, cohort, site, report, output_format="log"
+):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     synid_file_dd = get_bpc_synid_prissmm(
         synid_table_prissmm=config["synapse"]["prissmm"]["id"],
@@ -1473,7 +1541,9 @@ def col_entry_datetime_format_mismatch(config, cohort, site, report, output_form
 
 def col_data_date_format_mismatch(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     synid_file_dd = get_bpc_synid_prissmm(
         synid_table_prissmm=config["synapse"]["prissmm"]["id"],
@@ -1521,7 +1591,9 @@ def col_data_date_format_mismatch(config, cohort, site, report, output_format="l
 
 def col_entry_date_format_mismatch(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     synid_file_dd = get_bpc_synid_prissmm(
         synid_table_prissmm=config["synapse"]["prissmm"]["id"],
@@ -1583,7 +1655,9 @@ def col_empty_but_required(
     dd = get_data(synid_file_dd)
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     col_req = dd[
         (dd["Required Field?"] == "y") & (~dd["Variable / Field Name"].isin(exclude))
@@ -1711,9 +1785,11 @@ def patient_marked_removed_from_bpc(config, cohort, site, report, output_format=
     data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
 
     query = f"SELECT record_id FROM {config['synapse']['rm_pat']['id']} WHERE {cohort} = 'true'"
-    pat_rm = syn.tableQuery(query, includeRowIdAndRowVersion=False).asDataFrame()[
-        "record_id"
-    ].to_list()
+    pat_rm = (
+        syn.tableQuery(query, includeRowIdAndRowVersion=False)
+        .asDataFrame()["record_id"]
+        .to_list()
+    )
 
     values = list(
         set(data[config["column_name"]["patient_id"]]).intersection(set(pat_rm))
@@ -1724,7 +1800,7 @@ def patient_marked_removed_from_bpc(config, cohort, site, report, output_format=
         site=site,
         output_format=output_format,
         column_name=config["column_name"]["patient_id"],
-        synid=obj.get('data1') if "data1" in obj else obj["synid_table"],
+        synid=obj.get("data1") if "data1" in obj else obj["synid_table"],
         patient_id=None,
         instrument=None,
         instance=None,
@@ -1751,9 +1827,11 @@ def sample_marked_removed_from_bpc(config, cohort, site, report, output_format="
     data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
 
     query = f"SELECT SAMPLE_ID FROM {config['synapse']['rm_sam']['id']} WHERE {cohort} = 'true'"
-    sam_rm = syn.tableQuery(query, includeRowIdAndRowVersion=False).asDataFrame()[
-        "SAMPLE_ID"
-    ].to_list()
+    sam_rm = (
+        syn.tableQuery(query, includeRowIdAndRowVersion=False)
+        .asDataFrame()["SAMPLE_ID"]
+        .to_list()
+    )
 
     values = list(
         set(data[config["column_name"]["sample_id"]]).intersection(set(sam_rm))
@@ -1764,7 +1842,7 @@ def sample_marked_removed_from_bpc(config, cohort, site, report, output_format="
         site=site,
         output_format=output_format,
         column_name=config["column_name"]["sample_id"],
-        synid=obj.get('data1') if "data1" in obj else obj["synid_table"],
+        synid=obj.get("data1") if "data1" in obj else obj["synid_table"],
         patient_id=None,
         instrument=None,
         instance=None,
@@ -1777,7 +1855,9 @@ def sample_marked_removed_from_bpc(config, cohort, site, report, output_format="
 
 def patient_count_too_small(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     n_current = get_bpc_case_count(data)
 
@@ -1813,7 +1893,9 @@ def patient_count_too_small(config, cohort, site, report, output_format="log"):
 
 def investigational_drug_duration(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data_upload = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data_upload = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     code_masked = config["maps"]["drug"]["investigational_drug"]
 
     results = pd.DataFrame()
@@ -1847,7 +1929,9 @@ def investigational_drug_duration(config, cohort, site, report, output_format="l
 
 def investigational_drug_other_name(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data_upload = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data_upload = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     code_masked = config["maps"]["drug"]["investigational_drug"]
 
     results = pd.DataFrame()
@@ -1878,7 +1962,9 @@ def investigational_drug_other_name(config, cohort, site, report, output_format=
 
 def investigational_drug_not_ct(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data_upload = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data_upload = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     code_masked = config["maps"]["drug"]["investigational_drug"]
     code_yes = config["maps"]["drug"]["ct_yes"]
 
@@ -1916,7 +2002,9 @@ def drug_not_fda_approved(config, cohort, site, report, output_format="log"):
     year_curation = get_bpc_curation_year(cohort, site)
 
     obj_upload = config["uploads"][cohort][site]
-    data_upload = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data_upload = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     code_masked = config["maps"]["drug"]["investigational_drug"]
 
     for i in range(1, 6):
@@ -1979,7 +2067,9 @@ def irr_sample(config, cohort, site, report, output_format="log"):
     mg_ids = get_main_genie_ids(
         config["synapse"]["genie_sample"]["id"], patient=True, sample=True
     )
-    bpc_data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    bpc_data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     bpc_sids = bpc_data["cpt_genie_sample_id"][
         bpc_data["cpt_genie_sample_id"].str.contains("[-_]2$")
     ]
@@ -2013,7 +2103,9 @@ def irr_patient(config, cohort, site, report, output_format="log"):
     mg_ids = get_main_genie_ids(
         config["synapse"]["genie_sample"]["id"], patient=True, sample=False
     )
-    bpc_data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    bpc_data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     bpc_pids = bpc_data["record_id"][bpc_data["record_id"].str.contains("[-_]2$")]
     bpc_not_mg_pid = get_added(bpc_pids, mg_ids["PATIENT_ID"])
 
@@ -2051,7 +2143,9 @@ def col_empty_site_not_others(config, cohort, site, report, output_format="log")
         )
 
     for obj in objs:
-        data = get_bpc_data(config=config, cohort=cohort, site=None, report=report, obj=obj)
+        data = get_bpc_data(
+            config=config, cohort=cohort, site=None, report=report, obj=obj
+        )
 
         for index_site in sites:
             data_index_site = data[data["record_id"].str.contains(index_site)]
@@ -2071,12 +2165,12 @@ def col_empty_site_not_others(config, cohort, site, report, output_format="log")
                     site=index_site,
                     output_format=output_format,
                     column_name=idx_highlight,
-                    synid=obj.get('data1')
-                    if obj.get('data1') is not None
+                    synid=obj.get("data1")
+                    if obj.get("data1") is not None
                     else obj["synid_table"],
                     patient_id=None,
                     instrument=get_bpc_table_instrument(obj["synid_table"])
-                    if obj.get('data1') is None
+                    if obj.get("data1") is None
                     else data["redcap_repeat_instrument"][idx_highlight],
                     instance=None,
                     check_no=35,
@@ -2091,10 +2185,16 @@ def col_five_perc_inc_missing(config, cohort, site, report, output_format="log")
     output = []
 
     synid_view_current = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["current"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["current"],
     )
     synid_view_previous = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["previous"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["previous"],
     )
     synid_view_all = synid_view_current[
         synid_view_current["form"].isin(synid_view_previous["form"])
@@ -2112,7 +2212,7 @@ def col_five_perc_inc_missing(config, cohort, site, report, output_format="log")
                     "previous": False,
                     "select": None,
                 },
-                current=True
+                current=True,
             )
             data_prev = get_bpc_data(
                 config=config,
@@ -2135,7 +2235,7 @@ def col_five_perc_inc_missing(config, cohort, site, report, output_format="log")
                     "version": config["release"][cohort]["current"],
                     "file_name": synid_view_all["form"].iloc[i],
                 },
-                current=True
+                current=True,
             )
             data_prev = get_bpc_data(
                 config=config,
@@ -2181,10 +2281,16 @@ def col_five_perc_dec_missing(config, cohort, site, report, output_format="log")
     output = []
 
     synid_view_current = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["current"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["current"],
     )
     synid_view_previous = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["previous"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["previous"],
     )
     synid_view_all = synid_view_current[
         synid_view_current["form"].isin(synid_view_previous["form"])
@@ -2268,10 +2374,16 @@ def col_removed(config, cohort, site, report, output_format="log"):
     output = []
 
     synid_view_current = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["current"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["current"],
     )
     synid_view_previous = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["previous"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["previous"],
     )
     synid_view_all = synid_view_current[
         synid_view_current["form"].isin(synid_view_previous["form"])
@@ -2349,10 +2461,16 @@ def col_added(config, cohort, site, report, output_format="log"):
     output = []
 
     synid_view_current = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["current"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["current"],
     )
     synid_view_previous = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["previous"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["previous"],
     )
     synid_view_all = synid_view_current[
         synid_view_current["form"].isin(synid_view_previous["form"])
@@ -2428,10 +2546,16 @@ def col_added(config, cohort, site, report, output_format="log"):
 
 def file_added(config, cohort, site, report, output_format="log"):
     synid_view_current = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["current"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["current"],
     )
     synid_view_previous = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["previous"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["previous"],
     )
 
     values = list(set(synid_view_current["form"]) - set(synid_view_previous["form"]))
@@ -2454,10 +2578,16 @@ def file_added(config, cohort, site, report, output_format="log"):
 
 def file_removed(config, cohort, site, report, output_format="log"):
     synid_view_current = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["current"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["current"],
     )
     synid_view_previous = get_bpc_set_view(
-        config=config, cohort=cohort, report=report, version=config["release"][cohort]["previous"]
+        config=config,
+        cohort=cohort,
+        report=report,
+        version=config["release"][cohort]["previous"],
     )
 
     values = list(set(synid_view_previous["form"]) - set(synid_view_current["form"]))
@@ -2489,7 +2619,9 @@ def required_not_uploaded(
     dd = get_data(synid_file_dd)
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     col_req = dd[dd["Required Field?"] == "y"][
         ~dd["Variable / Field Name"].isin(exclude)
@@ -2516,7 +2648,9 @@ def required_not_uploaded(
 
 def ct_drug_not_investigational(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data_upload = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data_upload = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
     code_masked = config["maps"]["drug"]["investigational_drug"]
     code_yes = config["maps"]["drug"]["ct_yes"]
 
@@ -2528,12 +2662,19 @@ def ct_drug_not_investigational(config, cohort, site, report, output_format="log
         # WHERE redcap_repeat_instrument = 'ca_directed_drugs' AND drugs_drug_{i} != {code_masked} AND drugs_ct_yn = {code_yes}
         # """
         filtered_df = data_upload[
-            (data_upload['redcap_repeat_instrument'] == 'ca_directed_drugs') & 
-            (data_upload[f'drugs_drug_{i}'] != code_masked) & 
-            (data_upload['drugs_ct_yn'] == code_yes)
+            (data_upload["redcap_repeat_instrument"] == "ca_directed_drugs")
+            & (data_upload[f"drugs_drug_{i}"] != code_masked)
+            & (data_upload["drugs_ct_yn"] == code_yes)
         ]
-        filtered_df.rename(columns={f'drugs_drug_{i}': 'column_name'}, inplace=True)
-        result = filtered_df[['record_id', 'redcap_repeat_instrument', 'redcap_repeat_instance', 'column_name']]
+        filtered_df.rename(columns={f"drugs_drug_{i}": "column_name"}, inplace=True)
+        result = filtered_df[
+            [
+                "record_id",
+                "redcap_repeat_instrument",
+                "redcap_repeat_instance",
+                "column_name",
+            ]
+        ]
         results = pd.concat([results, result])
 
     output = format_output(
@@ -2614,7 +2755,9 @@ def data_header_col_mismatch(config, cohort, site, report, output_format="log"):
 
 def current_count_not_target(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     n_current = get_bpc_case_count(data)
 
@@ -2649,7 +2792,9 @@ def current_count_not_target(config, cohort, site, report, output_format="log"):
 
 def patient_count_too_large(config, cohort, site, report, output_format="log"):
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     n_current = get_bpc_case_count(data)
 
@@ -2687,7 +2832,9 @@ def cpt_sample_type_numeric(config, cohort, site, report, output_format="log"):
     output = None
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     res = data[
         (data["redcap_repeat_instrument"] == config["instrument_name"]["panel"])
@@ -2717,7 +2864,9 @@ def quac_required_column_missing(config, cohort, site, report, output_format="lo
     col_req = list(config["column_name"].values())
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     res = list(set(col_req) - set(data.columns))
 
@@ -2742,7 +2891,9 @@ def invalid_choice_code(config, cohort, site, report, output_format="log"):
     output = pd.DataFrame()
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     synid_dd = get_bpc_synid_prissmm(
         synid_table_prissmm=config["synapse"]["prissmm"]["id"],
@@ -2778,13 +2929,16 @@ def invalid_choice_code(config, cohort, site, report, output_format="log"):
                             column_name=var_name,
                             synid=obj_upload["data1"],
                             patient_id=data.loc[
-                                idx_invalid.index[idx_invalid], config["column_name"]["patient_id"]
+                                idx_invalid.index[idx_invalid],
+                                config["column_name"]["patient_id"],
                             ].to_list(),
                             instrument=data.loc[
-                                idx_invalid.index[idx_invalid], config["column_name"]["instrument"]
+                                idx_invalid.index[idx_invalid],
+                                config["column_name"]["instrument"],
                             ].to_list(),
                             instance=data.loc[
-                                idx_invalid.index[idx_invalid], config["column_name"]["instance"]
+                                idx_invalid.index[idx_invalid],
+                                config["column_name"]["instance"],
                             ].to_list(),
                             check_no=50,
                             infer_site=False,
@@ -2798,7 +2952,9 @@ def less_than_adjusted_target(config, cohort, site, report, output_format="log")
     output = None
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     n_current = get_bpc_case_count(data)
 
@@ -2835,7 +2991,9 @@ def greater_than_adjusted_target(config, cohort, site, report, output_format="lo
     output = None
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     n_current = get_bpc_case_count(data)
 
@@ -2878,7 +3036,9 @@ def character_double_value(config, cohort, site, report, output_format="log"):
     ]
 
     for obj in objs:
-        data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
+        data = get_bpc_data(
+            config=config, cohort=cohort, site=site, report=report, obj=obj
+        )
 
         for i in range(len(data.columns)):
             idx = data.iloc[:, i].apply(lambda x: not isinstance(x, float))
@@ -2973,7 +3133,9 @@ def sample_missing_oncotree_code(config, cohort, site, report, output_format="lo
     output = None
 
     obj_upload = config["uploads"][cohort][site]
-    data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    data = get_bpc_data(
+        config=config, cohort=cohort, site=site, report=report, obj=obj_upload
+    )
 
     var_code = config["column_name"]["oncotree_code"]
     var_pat = config["column_name"]["patient_id"]
