@@ -17,7 +17,6 @@ def is_synapse_table(synid):
 
     entity = syn.get(synid, downloadFile=False)
     file_type = entity.concreteType
-
     if file_type is None:
         return False
 
@@ -76,7 +75,7 @@ def get_data(synid, version=None, sheet=1):
         if ent.name.endswith(".xlsx"):
             data = pd.read_excel(ent.path, sheet_name=sheet)
         else:
-            data = pd.read_csv(ent.path, low_memory=False)
+            data = pd.read_csv(ent.path, low_memory=False, encoding="unicode_escape")
 
     return data
 
@@ -106,7 +105,6 @@ def get_data_filtered_table(
         if isinstance(version, list):
             version = version[0]
         query = f"SELECT {select_clause} FROM {synid}.{version} {where_clause}"
-
     results = syn.tableQuery(query)
     data = results.asDataFrame()
 
@@ -207,22 +205,8 @@ def get_folder_synid_from_path(synid_folder_root: str, paths: list):
 # TODO Clean up
 @cache
 def get_file_synid_from_path(synid_folder_root: str, paths: list, file_name: str):
-    # path_parts = path.split("/")
-    # file_name = path_parts[-1]
-    # path_abbrev = "/".join(path_parts[:-1])
-
-    # synid_folder_dest = get_folder_synid_from_path(synid_folder_root, path_abbrev)
-    # synid_folder_children = get_synapse_folder_children(
-    #     synid_folder_dest, include_types=["file"]
-    # )
-
-    # if file_name not in synid_folder_children:
-    #     return None
-    # print(file_name)
-    # print(synid_folder_root)
     folder_hiearchy = synapseutils.walk(syn, synid_folder_root)
     for dirpath, dirname, files in folder_hiearchy:
-        # print(dirpath)
         if dirpath[0].endswith(paths):
             for filename, synid in files:
                 if filename == file_name:
@@ -253,22 +237,21 @@ def get_vector_index(array_index, nrow):
     return vector_index
 
 
-def count_not_empty(vector, exclude=np.nan, na_strings=np.nan):
+def count_not_empty(vector: pd.Series, exclude: list = None, na_strings: list = None):
     mod = vector.copy()
-
-    if not pd.isna(exclude):
-        mod = mod[~mod.isin([exclude])]
+    if exclude is not None:
+        mod = mod[~mod.index.isin([exclude])]
 
     idx_na = mod.isna() | mod.isin([na_strings])
     return len(mod) - sum(idx_na)
 
 
-def is_empty(vector, exclude=np.nan, na_strings=np.nan):
+def is_empty(vector: pd.Series, exclude: list = None, na_strings: list = None):
     return count_not_empty(vector, exclude, na_strings) == 0
 
 
-def is_not_empty(vector, exclude=np.nan, na_strings=np.nan):
-    return bool(count_not_empty(vector, exclude, na_strings))
+# def is_not_empty(vector, exclude=None, na_strings=None):
+#     return count_not_empty(vector, exclude, na_strings) > 0
 
 
 def fraction_empty(vector, na_strings=np.nan):
@@ -428,31 +411,29 @@ def wait_if_not(cond, msg=""):
             pass
 
 
-def capitalize(str):
-    return str[0].upper() + str[1:].lower()
+def capitalize(string):
+    return string[0].upper() + string[1:].lower()
 
 
-def trim_string(str):
-    return str.strip()
+# def trim_string(string):
+#     return string.strip()
 
 
-def merge_last_elements(x, delim):
-    return [x[0], delim.join(x[1:])]
+# def merge_last_elements(x, delim):
+#     return [x[0], delim.join(x[1:])]
 
 
-def strsplit_first(x, split):
-    unmerged = x.split(split)
-    remerge = merge_last_elements(unmerged, split)
+# def strsplit_first(x, split):
+#     unmerged = x.split(split)
+#     remerge = merge_last_elements(unmerged, split)
 
-    return remerge
+#     return remerge
 
 
-def parse_mapping(str):
-    clean = trim_string(str.replace('"', ""))
-    splt = strsplit_first(clean.split("|")[0], ",")
-
-    codes = [trim_string(x[0]) for x in splt]
-    values = [trim_string(x[1]) for x in splt]
+def parse_mapping(string):
+    clean = string.strip().split("|")
+    codes = [clean_code.split(",")[0].strip() for clean_code in clean]
+    values = [clean_code.split(",")[1].strip() for clean_code in clean]
     mapping = pd.DataFrame({"codes": codes, "values": values})
 
     return mapping
@@ -465,3 +446,21 @@ def parse_phase_from_cohort(cohort):
         return [cohort, 2]
 
     return [cohort, 1]
+
+from datetime import datetime, timedelta
+from synapseclient import Synapse
+
+def is_synapse_entity_modified(syn, synapse_id, value, unit="day"):
+    entity = syn.get(synapse_id, downloadFile=False)
+    utc_mod = datetime.strptime(entity.properties.modifiedOn, "%Y-%m-%dT%H:%M:%S.%fZ")
+    utc_now = datetime.utcnow()
+
+    delta = (utc_now - utc_mod).total_seconds() / 3600
+
+    if unit == "day" and delta < value * 24:
+        return True
+
+    if unit == "hour" and delta < value:
+        return True
+
+    return False

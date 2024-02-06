@@ -315,25 +315,25 @@ report:
   - 45
   - 49
   - 3
-  - 4
-  - 5
-  - 6
-  - 1
-  - 2
+  - 4 # warning
+  - 5 # warning
+  - 6 # warning
+  - 1 # warning
+  - 2 # warning
   - 7
   - 8
-  - 9
-  - 10
-  - 11
+  - 9 # warning
+  - 10 # deprecated
+  - 11 # deprecated
   - 12
   - 13
   - 14
   - 17
   - 18
-  - 19
-  - 20
-  - 21
-  - 22
+  - 19 # warn
+  - 20 # warn
+  - 21 # warn
+  - 22 # warn
   - 23
   - 26
   - 27

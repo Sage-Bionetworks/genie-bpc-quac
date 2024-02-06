@@ -130,8 +130,8 @@ overview = args.overview
 syn = synapseclient.login()
 
 # update config
-config = update_config_for_comparison_report(config)
-config = update_config_for_release_report(config)
+config = update_config_for_comparison_report(syn, config)
+config = update_config_for_release_report(syn, config)
 
 # check user input -------------------------------------------------------------
 
@@ -275,7 +275,7 @@ else:
                         f" --> {0 if res_check is None or len(res_check) == 0 or res_check.empty or res_check.isna().all().all() else len(res_check)} {check_level[index]}(s) identified"
                     )
                 res = pd.concat([res, res_check])
-
+                res.to_csv('test.csv')
                 # check for flagged fail check
                 if (
                     check_level[index] == "fail"

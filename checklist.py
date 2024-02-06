@@ -55,7 +55,7 @@ def get_check_functions(labels):
     return fxns
 
 
-def update_config_for_comparison_report(config):
+def update_config_for_comparison_report(syn, config):
     """
     Update the configuration global variables with information
     from external references for the comparison report.
@@ -80,7 +80,7 @@ def update_config_for_comparison_report(config):
     return config
 
 
-def update_config_for_release_report(config):
+def update_config_for_release_report(syn, config):
     """
     Update the configuration global variables with information
     from external references for the release report.
@@ -365,8 +365,8 @@ def get_bpc_version_at_date(
 # bpc functions -------------------------------------
 
 
-def get_bpc_data_table(config, synid_table, cohort, site=np.nan, select=np.nan, previous=False):
-    version_no = np.nan
+def get_bpc_data_table(config, synid_table, cohort, site=None, select=None, previous=False):
+    version_no = None
 
     if previous:
         version_date = config["comparison"][cohort]["previous"]
@@ -374,7 +374,7 @@ def get_bpc_data_table(config, synid_table, cohort, site=np.nan, select=np.nan, 
             synid_table=synid_table, date_version=version_date
         )
 
-    if pd.isna(site):
+    if site is None:
         data = get_data_filtered(
             synid_table,
             column_name="cohort",
@@ -411,19 +411,8 @@ def get_bpc_data_release(cohort, site, version, file_name, current=False):
             paths=(old_accepted_path,new_path),
             file_name=file_name
         )
-    # import synapseutils
-    # print(TOP_CONFIG["synapse"]["release"]["id"])
-    # folder_hiearchy = synapseutils.walk(syn, TOP_CONFIG["synapse"]["release"]["id"])
-    # for dirpath, dirname, files in folder_hiearchy:
-    #     print(dirpath)
-    #     if dirpath[0].endswith((old_accepted_path, new_path)):
-    #         for filename, synid in files:
-    #             if filename == file_name:
-    #                 synid_file = synid
-    #                 break
-    # print(synid_file)
+
     data = get_data(synid_file)
-    # print(data)
     if not pd.isna(site):
         data = data[data["record_id"].str.contains(site)]
 
@@ -435,10 +424,11 @@ def get_bpc_data(config, cohort, site, report, obj=None, current=False):
         return get_bpc_data_upload(
             cohort,
             site,
-            synid_file_data1=obj["data1"],
-            synid_file_data2=obj["data2"],
-            synid_file_header1=obj["header1"],
-            synid_file_header2=obj["header2"],
+            report,
+            synid_file_data1=obj.get("data1"),
+            synid_file_data2=obj.get("data2"),
+            synid_file_header1=obj.get("header1"),
+            synid_file_header2=obj.get("header2")
         )
 
     if report in ["table", "comparison"]:
@@ -604,10 +594,14 @@ def get_bpc_instrument_of_variable(variable_name, cohort):
 
 def get_bpc_sor_data_type_single(var_name, sor=None):
     if sor is None:
-        sor = get_data(TOP_CONFIG["synapse"]["sor"]["id"], sheet=2)
+        sor = get_data(TOP_CONFIG["synapse"]["sor"]["id"], sheet=1, version=205)
     if len(sor[sor["VARNAME"] == var_name]) == 0:
-        return np.nan
-    data_type = sor[sor["VARNAME"] == var_name]["DATA.TYPE"].unique().lower()
+        return None
+    data_type = sor[sor["VARNAME"] == var_name]["DATA TYPE"].unique()[0]
+    # TODO remove this hack later
+    if pd.isna(data_type):
+        data_type = "character"
+    data_type = data_type.lower()
     map_dt = TOP_CONFIG["maps"]["data_type"]
     if data_type in map_dt:
         return map_dt[data_type]
@@ -616,8 +610,8 @@ def get_bpc_sor_data_type_single(var_name, sor=None):
 
 def get_bpc_sor_data_type(var_name, sor=None):
     data_types = []
-    for i in range(len(var_name)):
-        data_types.append(get_bpc_sor_data_type_single(var_name[i], sor))
+    for var in var_name:
+        data_types.append(get_bpc_sor_data_type_single(var, sor))
     return data_types
 
 
@@ -929,25 +923,25 @@ def empty_row(config, cohort, site, report, output_format="log"):
         res = data.apply(
             lambda row: is_empty(row, na_strings=["NA", ""], exclude=exclude), axis=1
         )
-        idx = res[res].index
-
-        output.append(
-            format_output(
-                value=[None] * len(idx),
-                cohort=cohort,
-                site=site,
-                output_format=output_format,
-                column_name=None,
-                synid=obj["data1"] if obj["data1"] is not None else obj["synid_table"],
-                patient_id=data.loc[idx, config["column_name"]["patient_id"]],
-                instrument=get_bpc_table_instrument(obj["synid_table"])
-                if obj["data1"] is None
-                else data["redcap_repeat_instrument"][idx],
-                instance=data.loc[idx, config["column_name"]["instance"]],
-                check_no=7,
-                infer_site=False,
+        if res.any():
+            idx = res[res].index
+            output.append(
+                format_output(
+                    value=[None] * len(idx),
+                    cohort=cohort,
+                    site=site,
+                    output_format=output_format,
+                    column_name=None,
+                    synid=obj.get('data1') if obj.get("data1") is not None else obj["synid_table"],
+                    patient_id=data.loc[idx, config["column_name"]["patient_id"]],
+                    instrument=get_bpc_table_instrument(obj["synid_table"])
+                    if obj.get("data1") is None
+                    else data["redcap_repeat_instrument"][idx],
+                    instance=data.loc[idx, config["column_name"]["instance"]],
+                    check_no=7,
+                    infer_site=False,
+                )
             )
-        )
 
     return output
 
@@ -1005,7 +999,7 @@ def col_empty(config, cohort, site, report, output_format="log"):
         col_empty = list(set(col_root_empty) - set(col_root_not_empty))
 
         instrument = None
-        if obj["data1"] is None:
+        if obj.get("data1") is None:
             instrument = get_bpc_table_instrument(obj["synid_table"])
 
         output.append(
@@ -1015,7 +1009,7 @@ def col_empty(config, cohort, site, report, output_format="log"):
                 site=site,
                 output_format=output_format,
                 column_name=col_empty,
-                synid=obj["data1"] if obj["data1"] is not None else obj["synid_table"],
+                synid=obj.get('data1') if obj.get('data1') is not None else obj["synid_table"],
                 patient_id=None,
                 instrument=instrument,
                 instance=None,
@@ -1038,9 +1032,10 @@ def col_data_type_sor_mismatch(config, cohort, site, report, output_format="log"
     objs = []
     output = []
 
-    # read sor
-    sor = get_data(config["synapse"]["sor"]["id"], sheet=2)
-
+    # sor is the scope of release
+    # TODO remove this hack
+    sor = get_data(config["synapse"]["sor"]["id"], sheet=1)
+    print(sor.columns)
     # gather data objects
     if report == "upload":
         objs.append(config["uploads"][cohort][site])
@@ -1064,30 +1059,38 @@ def col_data_type_sor_mismatch(config, cohort, site, report, output_format="log"
         for var in config["noninteger_values"].keys():
             if var in data.columns:
                 data.loc[data[var].isin(config["noninteger_values"][var]), var] = None
-
+        # print(data)
         # variable data types
-        type_inf = config["maps"]["data_type"][infer_data_type(data)]
+        # ! Fix this, because this is a hack
+        type_inf = []
+        for col in data.columns:
+            try:
+                data[col].astype(float)
+                type_inf.append("numeric")
+            except ValueError:
+                type_inf.append("character")
         type_sor = get_bpc_sor_data_type(var_name=data.columns, sor=sor)
-        idx = (type_sor == "numeric") & (type_inf == "character")
-
-        # format output
-        output.append(
-            format_output(
-                value=data.columns[idx],
-                cohort=cohort,
-                site=site,
-                output_format=output_format,
-                column_name=None,
-                synid=obj["data1"] if obj["data1"] is not None else obj["synid_table"],
-                patient_id=None,
-                instrument=get_bpc_table_instrument(obj["synid_table"])
-                if obj["data1"] is None
-                else None,
-                instance=None,
-                check_no=12,
-                infer_site=False,
+        idx = (pd.Series(type_sor) == "numeric") & (pd.Series(type_inf) == "character")
+        if idx.any():
+            # format output
+            output.append(
+                format_output(
+                    value=data.columns[idx],
+                    cohort=cohort,
+                    site=site,
+                    output_format=output_format,
+                    column_name=None,
+                    synid=obj.get('data1') if obj.get('data1') is not None else obj["synid_table"],
+                    patient_id=None,
+                    instrument=get_bpc_table_instrument(obj["synid_table"])
+                    if obj.get('data1') is None
+                    else None,
+                    instance=None,
+                    check_no=12,
+                    infer_site=False,
+                )
             )
-        )
+    print(output)
     return output
 
 
@@ -1096,7 +1099,7 @@ def col_entry_data_type_sor_mismatch(config, cohort, site, report, output_format
     output = []
 
     # read sor and upload file
-    sor = get_data(config["synapse"]["sor"]["id"], sheet=2)
+    sor = get_data(config["synapse"]["sor"]["id"], sheet=1)
 
     # gather data objects
     if report == "upload":
@@ -1123,36 +1126,67 @@ def col_entry_data_type_sor_mismatch(config, cohort, site, report, output_format
                 data.loc[data[var].isin(config["noninteger_values"][var]), var] = None
 
         # variable data types from scope of release
+        # type_sor = get_bpc_sor_data_type(var_name=data.columns, sor=sor)
+        # print(type_sor)
+        # type_sor = pd.Series(type_sor)
+        # type_sor.index = data.columns
+        # print(data.shape)
+
+        type_inf = []
+        for col in data.columns:
+            try:
+                data[col].astype(float)
+                type_inf.append("numeric")
+            except ValueError:
+                type_inf.append("character")
         type_sor = get_bpc_sor_data_type(var_name=data.columns, sor=sor)
-        type_sor.index = data.columns
-
-        for i in range(data.shape[1]):
-            type_sor_col = type_sor[data.columns[i]]
-
-            if pd.notnull(type_sor_col) and type_sor_col == "numeric":
-                type_inf = config["maps"]["data_type"][infer_data_type(data.iloc[:, i])]
-                idx = type_inf == "character"
-
-                # format output
-                output.append(
-                    format_output(
-                        value=data.iloc[idx, i],
-                        cohort=cohort,
-                        site=site,
-                        output_format=output_format,
-                        column_name=data.columns[i],
-                        synid=obj["data1"]
-                        if obj["data1"] is not None
-                        else obj["synid_table"],
-                        patient_id=data["record_id"][idx],
-                        instrument=get_bpc_table_instrument(obj["synid_table"])
-                        if obj["data1"] is None
-                        else data["redcap_repeat_instrument"][idx],
-                        instance=data["redcap_repeat_instance"][idx],
-                        check_no=13,
-                        infer_site=False,
-                    )
+        idx = (pd.Series(type_sor) == "character") & (pd.Series(type_inf) == "numeric")
+        if idx.any():
+            # format output
+            output.append(
+                format_output(
+                    value=data.columns[idx],
+                    cohort=cohort,
+                    site=site,
+                    output_format=output_format,
+                    column_name=None,
+                    synid=obj.get('data1') if obj.get('data1') is not None else obj["synid_table"],
+                    patient_id=None,
+                    instrument=get_bpc_table_instrument(obj["synid_table"])
+                    if obj.get('data1') is None
+                    else None,
+                    instance=None,
+                    check_no=13,
+                    infer_site=False,
                 )
+            )
+        # for i in range(data.shape[1]):
+        #     type_sor_col = type_sor[data.columns[i]]
+
+        #     if pd.notnull(type_sor_col) and type_sor_col == "numeric":
+        #         type_inf = config["maps"]["data_type"][infer_data_type(data.iloc[:, i])]
+        #         idx = type_inf == "character"
+
+        #         # format output
+        #         output.append(
+        #             format_output(
+        #                 value=data.iloc[idx, i],
+        #                 cohort=cohort,
+        #                 site=site,
+        #                 output_format=output_format,
+        #                 column_name=data.columns[i],
+        #                 synid=obj.get('data1')
+        #                 if obj.get('data1') is not None
+        #                 else obj["synid_table"],
+        #                 patient_id=data["record_id"][idx],
+        #                 instrument=get_bpc_table_instrument(obj["synid_table"])
+        #                 if obj.get('data1') is None
+        #                 else data["redcap_repeat_instrument"][idx],
+        #                 instance=data["redcap_repeat_instance"][idx],
+        #                 check_no=13,
+        #                 infer_site=False,
+        #             )
+        #         )
     return output
 
 
@@ -1185,7 +1219,7 @@ def no_mapped_diag(config, cohort, site, report, output_format="log"):
         site=site,
         output_format=output_format,
         column_name=config["column_name"]["oncotree_code"],
-        synid=obj["synid_table"] if obj["data1"] is None else obj["data1"],
+        synid=obj["synid_table"] if obj.get('data1') is None else obj.get('data1'),
         patient_id=res[config["column_name"]["patient_id"]],
         instrument=config["instrument_name"]["panel"],
         instance=res[config["column_name"]["instance"]],
@@ -1307,11 +1341,14 @@ def sample_not_in_main_genie(config, cohort, site, report, output_format="log"):
     mg_ids = get_main_genie_ids(
         config["synapse"]["genie_sample"]["id"], patient=True, sample=True
     )
+    # TODO Why not getting strings that end in 2?
     bpc_data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
+    print(bpc_data["cpt_genie_sample_id"].isnull())
+    print(bpc_data["cpt_genie_sample_id"].str.endswith("-2"))
     bpc_sids = bpc_data["cpt_genie_sample_id"][
-        ~bpc_data["cpt_genie_sample_id"].isna()
-        & ~bpc_data["cpt_genie_sample_id"].str.contains("[-_]2$")
+        ~bpc_data["cpt_genie_sample_id"].isnull()
     ]
+    bpc_sids = bpc_sids[bpc_sids.str.endswith("-2")]
 
     bpc_not_mg_sid = get_added(bpc_sids, mg_ids["SAMPLE_ID"])
     bpc_not_mg_pid = []
@@ -1574,13 +1611,14 @@ def col_empty_but_required(
         cohort=cohort,
         file_name="Data Dictionary non-PHI",
     )
+    print(synid_file_dd)
     dd = get_data(synid_file_dd)
 
     obj_upload = config["uploads"][cohort][site]
     data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
 
     col_req = dd[
-        dd["Required Field?"] == "y" & ~dd["Variable / Field Name"].isin(exclude)
+        (dd["Required Field?"] == "y") & (~dd["Variable / Field Name"].isin(exclude))
     ]["Variable / Field Name"].tolist()
 
     is_col_empty = data.apply(lambda x: x.count() == 0)
@@ -1705,9 +1743,9 @@ def patient_marked_removed_from_bpc(config, cohort, site, report, output_format=
     data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
 
     query = f"SELECT record_id FROM {config['synapse']['rm_pat']['id']} WHERE {cohort} = 'true'"
-    pat_rm = syn.tableQuery(query, includeRowIdAndRowVersion=False)[
+    pat_rm = syn.tableQuery(query, includeRowIdAndRowVersion=False).asDataFrame()[
         "record_id"
-    ].tolist()
+    ].to_list()
 
     values = list(
         set(data[config["column_name"]["patient_id"]]).intersection(set(pat_rm))
@@ -1718,7 +1756,7 @@ def patient_marked_removed_from_bpc(config, cohort, site, report, output_format=
         site=site,
         output_format=output_format,
         column_name=config["column_name"]["patient_id"],
-        synid=obj["data1"] if "data1" in obj else obj["synid_table"],
+        synid=obj.get('data1') if "data1" in obj else obj["synid_table"],
         patient_id=None,
         instrument=None,
         instance=None,
@@ -1745,9 +1783,9 @@ def sample_marked_removed_from_bpc(config, cohort, site, report, output_format="
     data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj)
 
     query = f"SELECT SAMPLE_ID FROM {config['synapse']['rm_sam']['id']} WHERE {cohort} = 'true'"
-    sam_rm = syn.tableQuery(query, includeRowIdAndRowVersion=False)[
+    sam_rm = syn.tableQuery(query, includeRowIdAndRowVersion=False).asDataFrame()[
         "SAMPLE_ID"
-    ].tolist()
+    ].to_list()
 
     values = list(
         set(data[config["column_name"]["sample_id"]]).intersection(set(sam_rm))
@@ -1758,7 +1796,7 @@ def sample_marked_removed_from_bpc(config, cohort, site, report, output_format="
         site=site,
         output_format=output_format,
         column_name=config["column_name"]["sample_id"],
-        synid=obj["data1"] if "data1" in obj else obj["synid_table"],
+        synid=obj.get('data1') if "data1" in obj else obj["synid_table"],
         patient_id=None,
         instrument=None,
         instance=None,
@@ -2065,12 +2103,12 @@ def col_empty_site_not_others(config, cohort, site, report, output_format="log")
                     site=index_site,
                     output_format=output_format,
                     column_name=idx_highlight,
-                    synid=obj["data1"]
-                    if obj["data1"] is not None
+                    synid=obj.get('data1')
+                    if obj.get('data1') is not None
                     else obj["synid_table"],
                     patient_id=None,
                     instrument=get_bpc_table_instrument(obj["synid_table"])
-                    if obj["data1"] is None
+                    if obj.get('data1') is None
                     else data["redcap_repeat_instrument"][idx_highlight],
                     instance=None,
                     check_no=35,
@@ -2551,10 +2589,10 @@ def file_not_csv(config, cohort, site, report, output_format="log"):
     res = {}
     obj_upload = config["uploads"][cohort][site]
 
-    if obj_upload["data1"] is not None:
+    if obj_upload.get("data1") is not None:
         res[obj_upload["data1"]] = is_synapse_entity_csv(obj_upload["data1"])
 
-    if obj_upload["data2"] is not None:
+    if obj_upload.get("data2") is not None:
         res[obj_upload["data2"]] = is_synapse_entity_csv(obj_upload["data2"])
 
     if res and not all(res.values()):
@@ -2579,12 +2617,12 @@ def data_header_col_mismatch(config, cohort, site, report, output_format="log"):
     res = {}
     obj_upload = config["uploads"][cohort][site]
 
-    if obj_upload["data1"] is not None and obj_upload["header1"] is not None:
+    if obj_upload.get("data1") is not None and obj_upload.get("header1") is not None:
         data1 = get_data(obj_upload["data1"])
         header1 = get_data(obj_upload["header1"])
         res[obj_upload["data1"]] = data1.shape[1] == header1.shape[1]
 
-    if obj_upload["data2"] is not None and obj_upload["header2"] is not None:
+    if obj_upload.get("data2") is not None and obj_upload.get("header2") is not None:
         data2 = get_data(obj_upload["data2"])
         header2 = get_data(obj_upload["header2"])
         res[obj_upload["data2"]] = data2.shape[1] == header2.shape[1]
@@ -2733,7 +2771,7 @@ def quac_required_column_missing(config, cohort, site, report, output_format="lo
 
 
 def invalid_choice_code(config, cohort, site, report, output_format="log"):
-    output = None
+    output = pd.DataFrame()
 
     obj_upload = config["uploads"][cohort][site]
     data = get_bpc_data(config=config, cohort=cohort, site=site, report=report, obj=obj_upload)
@@ -2744,37 +2782,35 @@ def invalid_choice_code(config, cohort, site, report, output_format="log"):
         file_name="Data Dictionary non-PHI",
     )
     dd = get_data(synid_dd)
+    print(dd['Variable / Field Name'].is_unique)
 
-    for i in range(len(data.columns)):
-        var_name = data.columns[i]
+    for var_name in data.columns:
         choices = dd[dd["Variable / Field Name"] == var_name][
             "Choices, Calculations, OR Slider Labels"
         ]
-        if len(choices) and not pd.isna(choices).all():
-            codes = parse_mapping(choices)["codes"]
-            if isinstance(codes, float):
-                codes = codes.append(float(codes))
-            idx_invalid = data.iloc[:, i].apply(lambda x: x not in [None] + list(codes))
-
-            if not idx_invalid.empty:
+        if not choices.empty and not choices.isnull().all():
+            codes = parse_mapping(choices.iloc[0])["codes"]
+            # TODO check if this logic is right
+            idx_invalid = ~data[var_name].dropna().isin(codes)
+            if idx_invalid.any():
                 output = pd.concat(
                     [
                         output,
                         format_output(
-                            value=data.loc[idx_invalid, data.columns[i]],
+                            value=data.loc[idx_invalid.index[idx_invalid], var_name],
                             cohort=cohort,
                             site=site,
                             output_format=output_format,
-                            column_name=data.columns[i],
+                            column_name=var_name,
                             synid=obj_upload["data1"],
                             patient_id=data.loc[
-                                idx_invalid, config["column_name"]["patient_id"]
+                                idx_invalid.index[idx_invalid], config["column_name"]["patient_id"]
                             ],
                             instrument=data.loc[
-                                idx_invalid, config["column_name"]["instrument"]
+                                idx_invalid.index[idx_invalid], config["column_name"]["instrument"]
                             ],
                             instance=data.loc[
-                                idx_invalid, config["column_name"]["instance"]
+                                idx_invalid.index[idx_invalid], config["column_name"]["instance"]
                             ],
                             check_no=50,
                             infer_site=False,
