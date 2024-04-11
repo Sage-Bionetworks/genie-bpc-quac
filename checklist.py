@@ -1447,9 +1447,7 @@ def col_data_datetime_format_mismatch(
         set(data.columns).intersection(
             set(
                 dd[
-                    dd["Text Validation Type OR Show Slider Number"].str.contains(
-                        "^datetime_"
-                    )
+                    dd["Text Validation Type OR Show Slider Number"].str.startswith("datetime_")
                 ]["Variable / Field Name"]
             )
         )

@@ -248,7 +248,7 @@ if isinstance(sites, str):
 
 # HACK: upload the file to a synapse folder
 if data is not None:
-    hack_file_ent = syn.store(synapseclient.File(data, parent="syn56187727", name=cohort))
+    hack_file_ent = syn.store(synapseclient.File(data, parent="syn56187727", name=f"{sites[0]}_{cohort}"), forceVersion=False)
     config['uploads'][cohort][site]['data1'] = f"{hack_file_ent.id}.{hack_file_ent.versionNumber}"
 
 if overview:
