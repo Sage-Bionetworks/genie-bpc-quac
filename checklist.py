@@ -1446,19 +1446,19 @@ def col_data_datetime_format_mismatch(
     column_names = list(
         set(data.columns).intersection(
             set(
-                dd[
-                    dd["Text Validation Type OR Show Slider Number"].str.startswith("datetime_")
-                ]["Variable / Field Name"]
+                dd["Variable / Field Name"][
+                    dd["Text Validation Type OR Show Slider Number"].str.startswith("datetime_", na=False)
+                ]
             )
         )
     )
 
     res = {}
     for column_name in column_names:
-        res[column_name] = all(
-            is_timestamp_format_correct(
-                data[column_name], formats=["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"]
-            )
+        print(column_name)
+        print(data[column_name])
+        res[column_name] = is_timestamp_format_correct(
+            data[column_name], formats=["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"]
         )
 
     values = [k for k, v in res.items() if not v]
@@ -1497,8 +1497,8 @@ def col_entry_datetime_format_mismatch(
         set(data.columns).intersection(
             set(
                 dd[
-                    dd["Text Validation Type OR Show Slider Number"].str.contains(
-                        "^datetime_"
+                    dd["Text Validation Type OR Show Slider Number"].str.startswith(
+                        "datetime_", na=False
                     )
                 ]["Variable / Field Name"]
             )
@@ -1507,10 +1507,8 @@ def col_entry_datetime_format_mismatch(
 
     res = pd.DataFrame(False, index=data.index, columns=column_names)
     for column_name in column_names:
-        res[column_name] = data[column_name].apply(
-            lambda x: is_timestamp_format_correct(
-                x, formats=["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"]
-            )
+        res[column_name] = is_timestamp_format_correct(
+            data[column_name], formats=["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"]
         )
 
     idx_values = res[res == False].stack().index.tolist()
@@ -1553,8 +1551,8 @@ def col_data_date_format_mismatch(config, cohort, site, report, output_format="l
         set(data.columns).intersection(
             set(
                 dd[
-                    dd["Text Validation Type OR Show Slider Number"].str.contains(
-                        "^date_"
+                    dd["Text Validation Type OR Show Slider Number"].str.startswith(
+                        "date_", na=False
                     )
                 ]["Variable / Field Name"]
             )
@@ -1563,11 +1561,7 @@ def col_data_date_format_mismatch(config, cohort, site, report, output_format="l
 
     res = {}
     for column_name in column_names:
-        res[column_name] = (
-            data[column_name]
-            .apply(lambda x: is_date_format_correct(x, formats="%Y-%m-%d"))
-            .all()
-        )
+        res[column_name] = is_timestamp_format_correct(data[column_name], formats="%Y-%m-%d")
 
     values = [k for k, v in res.items() if not v]
     output = format_output(
@@ -1603,8 +1597,8 @@ def col_entry_date_format_mismatch(config, cohort, site, report, output_format="
         set(data.columns).intersection(
             set(
                 dd[
-                    dd["Text Validation Type OR Show Slider Number"].str.contains(
-                        "^date_"
+                    dd["Text Validation Type OR Show Slider Number"].str.startswith(
+                        "date_", na=False
                     )
                 ]["Variable / Field Name"]
             )
@@ -1613,9 +1607,7 @@ def col_entry_date_format_mismatch(config, cohort, site, report, output_format="
 
     res = pd.DataFrame(False, index=data.index, columns=column_names)
     for column_name in column_names:
-        res[column_name] = data[column_name].apply(
-            lambda x: is_date_format_correct(x, formats="%Y-%m-%d")
-        )
+        res[column_name] = is_timestamp_format_correct(data[column_name], formats="%Y-%m-%d")
 
     idx_values = res[res == False].stack().index.tolist()
     values = [data.loc[idx[0], idx[1]] for idx in idx_values]
@@ -1862,8 +1854,9 @@ def patient_count_too_small(config, cohort, site, report, output_format="log"):
     phase_cohort_list = parse_phase_from_cohort(cohort)
     cohort_without_phase = phase_cohort_list[0]
     phase = phase_cohort_list[1]
-    query = f"SELECT target_cases FROM {config['synapse']['target_count']['id']} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}"
-    query_result = syn.tableQuery(query, includeRowIdAndRowVersion=False)[
+    table_id = config['synapse']['target_count']['id']
+    query = f"SELECT target_cases FROM {table_id} WHERE cohort = '{cohort_without_phase}' AND site = '{site}' AND phase = {phase}"
+    query_result = syn.tableQuery(query, includeRowIdAndRowVersion=False).asDataFrame()[
         "target_cases"
     ].tolist()
     n_target = 0
@@ -2069,7 +2062,7 @@ def irr_sample(config, cohort, site, report, output_format="log"):
         config=config, cohort=cohort, site=site, report=report, obj=obj_upload
     )
     bpc_sids = bpc_data["cpt_genie_sample_id"][
-        bpc_data["cpt_genie_sample_id"].str.contains("[-_]2$")
+        bpc_data["cpt_genie_sample_id"].str.contains(pat="[-_]2$", na=False, regex=True)
     ]
     bpc_not_mg_sid = get_added(bpc_sids, mg_ids["SAMPLE_ID"])
     bpc_not_mg_pid = pd.DataFrame()

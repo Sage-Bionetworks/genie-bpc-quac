@@ -312,13 +312,15 @@ def get_date_as_string(
 
 def is_timestamp_format_correct(timestamps, formats=["%Y-%m-%d %H:%M:%S"]):
     for ts in timestamps:
+        if pd.isnull(ts):
+            continue
         for fmt in formats:
             try:
+                print(ts)
                 datetime.strptime(ts, fmt)
-                return True
             except ValueError:
-                pass
-    return False
+                return False
+    return True
 
 
 def is_date_format_correct(dates, formats=["%Y-%m-%d"]):
