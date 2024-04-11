@@ -2697,7 +2697,6 @@ def file_not_csv(config, cohort, site, report, output_format="log"):
     output = []
     res = {}
     obj_upload = config["uploads"][cohort][site]
-
     if obj_upload.get("data1") is not None:
         res[obj_upload["data1"]] = is_synapse_entity_csv(obj_upload["data1"])
 

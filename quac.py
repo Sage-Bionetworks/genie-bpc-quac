@@ -112,6 +112,10 @@ parser.add_argument(
     default=False,
     help="Display messages on script progress to the user",
 )
+parser.add_argument(
+    "--data",
+    help="Center local file path",
+)
 # extract command line arguments
 args = parser.parse_args()
 report = args.report
@@ -122,6 +126,7 @@ sites = args.site
 verbose = args.verbose
 save_synapse = args.save_to_synapse
 overview = args.overview
+data = args.data
 
 # setup ------------------------------------------------------------------------
 
@@ -172,6 +177,9 @@ if sites != choice_all and sites not in config["uploads"][cohort]:
     msg2 = f"Valid sites for the '{cohort}' cohort: "
     msg3 = f"{', '.join(config['uploads'][cohort])}"
     raise ValueError(msg1 + msg2 + msg3)
+
+if sites == choice_all and data is not None:
+    raise ValueError("Site choice cannot be 'all' if data is provided.")
 
 # parameter messaging ----------------------------------------
 
@@ -237,6 +245,11 @@ check_fxns = get_check_functions(check_labels)
 #     )
 if isinstance(sites, str):
     sites = [sites]
+
+# HACK: upload the file to a synapse folder
+if data is not None:
+    hack_file_ent = syn.store(synapseclient.File(data, parent="syn56187727", name=cohort))
+    config['uploads'][cohort][site]['data1'] = f"{hack_file_ent.id}.{hack_file_ent.versionNumber}"
 
 if overview:
     print(f"Checks ({len(check_fxns)}):")
