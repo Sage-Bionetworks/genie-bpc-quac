@@ -198,14 +198,14 @@ uploads:
   NSCLC2:
     DFCI:
       data1: syn27351603
-    DUKE:
-      data1: syn30821503
+    #DUKE:
+    #  data1: syn30821503
     MSK:
       data1: syn27351615
-    PROV:
-      data1: syn30821505
-    UCSF:
-      data1: syn30821507
+    #PROV:
+    #  data1: syn30821505
+    #UCSF:
+    #  data1: syn30821507
     UHN:
       data1: syn27351619
     VICC:
@@ -215,14 +215,14 @@ uploads:
   CRC2:
     DFCI:
       data1: syn29418170
-    DUKE:
-      data1: syn30821496
+    #DUKE:
+    #  data1: syn30821496
     MSK:
       data1: syn29418172
-    PROV:
-      data1: syn30821498
-    UCSF:
-      data1: syn30821500
+    #PROV:
+    #  data1: syn30821498
+    #UCSF:
+    #  data1: syn30821500
     UHN:
       data1: syn29418174
     VICC:
@@ -257,15 +257,21 @@ uploads:
       data1: syn30821493
     UHN:
       data1: syn29418143
-    VICC:
-      data1: syn29418146
+    #VICC:
+    #  data1: syn29418146
+    JHU:
+      data1: syn62015775
+    VHIO:
+      data1: syn62015776
+    WAKE:
+      data1: syn62015777
     SAGE:
       data1: syn51296296
   OVARIAN:
     DFCI:
       data1: syn29418091
-    DUKE:
-      data1: syn30821466
+    #DUKE:
+    #  data1: syn30821466
     MSK:
       data1: syn29418095
     PROV:
@@ -274,15 +280,17 @@ uploads:
       data1: syn30821472
     UHN:
       data1: syn29418098
-    VICC:
-      data1: syn29418100
+    VHIO:
+      data1: syn62015745
+    #VICC:
+    #  data1: syn29418100
     SAGE:
       data1: syn51296289
   ESOPHAGO:
     DFCI:
       data1: syn29418106
-    DUKE:
-      data1: syn30821475
+    #DUKE:
+    #  data1: syn30821475
     MSK:
       data1: syn29418110
     PROV:
@@ -291,8 +299,14 @@ uploads:
       data1: syn30821479
     UHN:
       data1: syn29418113
-    VICC:
-      data1: syn29418117
+    JHU:
+      data1: syn62015787
+    VHIO:
+      data1: syn62015794
+    WAKE:
+      data1: syn62015795
+    #VICC:
+    #  data1: syn29418117
     SAGE:
       data1: syn51296295
 output:
