@@ -1,6 +1,4 @@
 # Description: checklist of QA functions for the GENIE BPC QA process.
-# Author: Haley Hunter-Zinck
-# Date: July 1, 2021
 
 # global variables ------------------------------------
 
@@ -1429,7 +1427,7 @@ col_data_datetime_format_mismatch <- function(cohort, site, report, output_forma
                                                         formats = c("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M")))
   }
   
-  values <- names(res)[!res]
+  values <- if (is.null(res)) character(0) else names(res)[!res]
   output <- format_output(value = values, 
                           cohort = cohort, 
                           site = site,
@@ -1520,7 +1518,7 @@ col_data_date_format_mismatch <- function(cohort, site, report, output_format = 
                                                         formats = "%Y-%m-%d"))
   }
   
-  values <- names(res)[!res]
+  values <- if (is.null(res)) character(0) else names(res)[!res]
   output <- format_output(value = values, 
                           cohort = cohort, 
                           site = site,
