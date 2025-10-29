@@ -16,13 +16,15 @@ git clone git@github.com:Sage-Bionetworks/genie-bpc-quac.git
 cd genie-bpc-quac/
 ```
 
-For installation with Docker: 
+For installation with Docker:
+
+**NOTE:** The Dockerfile is too old to build from scratch (due to outdated R etc), but because the Dockerhub images caches and if we only make code changes, it will just rebuild successfully from the code change step since that's one of the last steps. So we have to just pull down the docker image from Dockerhub instead to run the code.
 
 ```
-docker build -t genie-bpc-quac .
+docker pull sagebionetworks/genie-bpc-quac
 ```
 
-For install without Docker, install Synapser and other required packages:
+For install without Docker, install Synapser and other required packages. **It is HIGHLY recommended you use the same `synapser` version that the Docker image has or just use the Docker image itself**:
 ```
 R -e 'install.packages("synapser", repos = c("http://ran.synapse.org", "http://cran.fhcrc.org"))'
 R -e 'renv::restore()'
@@ -30,19 +32,20 @@ R -e 'renv::restore()'
 
 ## Usage 
 
+
+To run with Docker, first activate the Docker image in interactive mode:
+
+```
+docker run -it --rm sagebionetworks/genie-bpc-quac /bin/bash
+```
+
 Make sure to cache your Synapse personal access token (PAT) as an environmental variable:
 
 ```
 export SYNAPSE_AUTH_TOKEN={your_personal_access_token_here}
 ```
 
-To run with Docker:
-
-```
-docker run --rm genie-bpc-quac -h
-```
-
-To run without Docker:
+To run the actual code with or without a Docker image:
 
 ```
 Rscript genie-bpc-quac.R -h
@@ -77,13 +80,7 @@ optional arguments:
                         '~/.synapseConfig')
 ```
 
-Example command line with Docker:
-
-```
-docker run --rm genie-bpc-quac -c {cohort} -s {site} -r upload -l error -v -a $SYNAPSE_AUTH_TOKEN
-```
-
-Example command line without Docker:
+Example command line:
 
 ```
 Rscript genie-bpc-quac.R -c {cohort} -s {site} -r upload -l error -v -a $SYNAPSE_AUTH_TOKEN
