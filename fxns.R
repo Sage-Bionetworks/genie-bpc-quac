@@ -85,7 +85,7 @@ get_synid_from_table <- function(synid, condition = NA, with_names = F) {
 #' @return Data frame repereneting stored at the Synapse ID entity.
 #' @example
 #' get_data(synid = "syn12345", version = 1)
-get_data <- function(synid, version = NA, sheet = 1) {
+get_data <- function(synid, version = NULL, sheet = 1) {
 
   # determine synapse id data type and query table or read csv
   if (is_synapse_table(synid)) {
@@ -116,7 +116,7 @@ get_data <- function(synid, version = NA, sheet = 1) {
 }
 
 get_data_filtered_table <- function(synid, column_name, col_value, select = NA,
-                                    version = NA, exact = F) {
+                                    version = NULL, exact = F) {
   
   # filter with where clause
   where_clause <- ""
@@ -159,7 +159,7 @@ get_data_filtered_table <- function(synid, column_name, col_value, select = NA,
 }
 
 get_data_filtered_file <- function(synid, column_name, col_value, select = NA,
-                                   version = NA, exact = F) {
+                                   version = NULL, exact = F) {
   
   ent <- synGet(as.character(synid), version = version)
   data <- read.csv(ent$path, check.names = F, na.strings = c(""),
@@ -207,7 +207,7 @@ get_data_filtered_file <- function(synid, column_name, col_value, select = NA,
 #' (synid = "syn12345", column_name = c("cohort", "record_id"),
 #' col_value = c("my_favorite_cohort", "-my_favorite_site-"), exact = c(T,F))
 get_data_filtered <- function(synid, column_name, col_value, select,
-                              version = NA, exact = F) {
+                              version = NULL, exact = F) {
 
   # determine synapse id data type and query table or read csv
   if (is_synapse_table(synid)) {
