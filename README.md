@@ -22,7 +22,7 @@ For installation with Docker:
 docker build -t genie-bpc-quac .
 ```
 
-For install without Docker, install Synapser and other required packages:
+For install without Docker, install Synapser and other required packages. **NOTE** It is highly recommended you use the same `synapser` version that the Docker image has or just use the Docker image itself:
 ```
 R -e 'install.packages("synapser", repos = c("http://ran.synapse.org", "http://cran.fhcrc.org"))'
 R -e 'renv::restore()'
