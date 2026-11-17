@@ -76,6 +76,7 @@ source(glue("{workdir}/checklist.R"))
 
 # synapse login
 syn <- synLogin(auth = synapse_auth)
+PythonEmbedInR::pyExec("syn.multi_threaded = False")
 
 # update config
 config <- update_config_for_comparison_report(config)
